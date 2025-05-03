@@ -92,7 +92,7 @@ export default function Table() {
                     {task.priority}
                   </span>
                 </td>
-                <td>
+                <td >
                   <span className={`${styles.badge} ${styles[task.status.replace(' ', '').toLowerCase()]}`}>
                     {task.status}
                   </span>

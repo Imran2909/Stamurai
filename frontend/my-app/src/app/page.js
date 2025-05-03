@@ -1,18 +1,35 @@
 "use client";
-import Form from "./components/form/page";
-import Table from "./components/table/page";
 import styles from "./styles/home.module.css";
+import Image from "next/image";
+import HomeBanner from "./Home banner.jpg"; // Adjust path as needed
+import Link from "next/link";
 
 export default function HomePage() {
   return (
     <div className={styles.container}>
       <div className={styles.box}>
-        {/* <div className={styles.formSection}>
-          <Form />
+        {/* Text Content Div */}
+        <div className={styles.contentSection}>
+          <h1 className={styles.title}>Task Management</h1>
+          <p className={styles.description}>
+            Streamline your workflow with our powerful task management solution. 
+            Organize, prioritize, and track all your tasks in one place with 
+            intuitive features designed to boost your productivity.
+          </p>
+          <Link href="/dashboard" className={styles.dashboardButton}>
+            Go To Dashboard
+          </Link>
         </div>
-        <div className={styles.divider}></div> */}
-        <div className={styles.tableSection}>
-          <Table />
+
+        {/* Image Div */}
+        <div className={styles.imageSection}>
+          <Image
+            src={HomeBanner}
+            alt="Task Management App Preview"
+            className={styles.bannerImage}
+            priority
+            fill
+          />
         </div>
       </div>
     </div>

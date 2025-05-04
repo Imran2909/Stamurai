@@ -1,7 +1,7 @@
 
   .sidebarContainer {
     width: 92%; /* Changed from fixed width to 100% of parent */
-    height: 96.5vh;
+    min-height: 96.5vh;
     background: #ffffff;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     border-right: 1px solid #eaeaea;

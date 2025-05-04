@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import styles from '../../styles/sidebar.module.css';
 
 const navItems = [
-  { label: 'Home', path: '/' },
+  { label: 'Home', path: '/' }, 
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Assign Task', path: '/assign-task' },
   { label: 'Organisation', path: '/organisation' },

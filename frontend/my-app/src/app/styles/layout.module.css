@@ -1,0 +1,21 @@
+.box {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .left {
+    width: 240px;
+    background: #ffffff;
+  }
+  
+  .right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .mainContent {
+    flex: 1;
+    /* padding: 20px; */
+    overflow-y: auto;
+  }

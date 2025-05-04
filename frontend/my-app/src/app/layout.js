@@ -1,9 +1,9 @@
-import Navbar from "./components/navbar/page";
-import Sidebar from "./components/sidebar/page";
 import "./globals.css";
+import { Provider } from "react-redux";
+import store from './redux/store'
 
 export const metadata = {
-  title: "Your App Title",
+  title: "Task Management",
   description: "Your App Description",
 };
 
@@ -11,7 +11,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* Google Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -24,19 +23,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body>
-        <div class="box">
-          <div class="left">
-            <Sidebar />
-          </div>
-          <div class="right">
-            <div>
-              <Navbar />
-            </div>
-            <div>
-              { children }
-            </div>
-          </div>
-        </div>
+        <Provider store={store}>{children}</Provider>
       </body>
     </html>
   );

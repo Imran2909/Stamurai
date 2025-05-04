@@ -9,7 +9,6 @@ const jwt = require("jsonwebtoken");
 const validateSignupInput = (req, res, next) => {
   const { username, email, password } = req.body;
 
-  // Check all required fields exist
   if (!username || !email || !password) {
     return res.status(400).json({
       success: false,
@@ -17,7 +16,6 @@ const validateSignupInput = (req, res, next) => {
     });
   }
 
-  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({
@@ -26,7 +24,6 @@ const validateSignupInput = (req, res, next) => {
     });
   }
 
-  // Validate password strength
   if (password.length < 4) {
     return res.status(400).json({
       success: false,
@@ -41,12 +38,10 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
-    // Check for existing user with same email
     const existingUser = await userModel.findOne({
       $or: [{ email: email }, { username: username }],
     });
     if (existingUser) {
-      // Determine which field caused the conflict
       let conflictField;
       let message;
 
@@ -68,21 +63,17 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
       });
     }
 
-    // Hash password with salt
     const passwordHash = bcrypt.hashSync(password, +process.env.SALT_ROUND);
 
-    // Create new user with empty collaborators array
     const newUser = new userModel({
       username,
       email,
       password: passwordHash,
-      collaborator: [], // Empty array as specified
+      collaborator: [],
     });
 
-    // Save user to database
     const savedUser = await newUser.save();
 
-    // Return success response (excluding sensitive data)
     return res.status(201).json({
       success: true,
       message: "User created successfully",
@@ -96,7 +87,6 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
   } catch (error) {
     console.error("Signup error:", error);
 
-    // Handle duplicate key error (unique email)
     if (error.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -104,7 +94,6 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
       });
     }
 
-    // Handle validation errors
     if (error.name === "ValidationError") {
       return res.status(400).json({
         success: false,
@@ -113,7 +102,6 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
       });
     }
 
-    // Generic server error
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -122,13 +110,11 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
   }
 });
 
-
-// Login route
+// Login route with both tokens
 userRouter.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Input validation
     if (!username || !password) {
       return res.status(400).json({
         success: false,
@@ -136,7 +122,6 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    // Find user
     const user = await userModel.findOne({ username });
     if (!user) {
       return res.status(401).json({
@@ -145,7 +130,6 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -154,13 +138,12 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    // Generate tokens
+    // Generate both tokens
     const accessToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: '15m' }
     );
-
     
     const refreshToken = jwt.sign(
       { userId: user._id },
@@ -168,12 +151,12 @@ userRouter.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Set cookies
+    // Set both cookies
     res.cookie('accessToken', accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000 // 1 day
+      maxAge: 15 * 60 * 1000 // 15 minutes
     });
 
     res.cookie('refreshToken', refreshToken, {
@@ -183,10 +166,12 @@ userRouter.post('/login', async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-    // Response
+    // Return both tokens in response as well (optional)
     return res.status(200).json({
       success: true,
       message: "Login successful",
+      accessToken,
+      refreshToken,
       user: {
         id: user._id,
         username: user.username,
@@ -203,36 +188,6 @@ userRouter.post('/login', async (req, res) => {
   }
 });
 
-// Refresh token route
-userRouter.post('/refresh-token', (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken) return res.sendStatus(401);
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
-
-    // Generate new access token
-    const newAccessToken = jwt.sign(
-      { userId: decoded.userId },
-      process.env.ACCESS_SECRET,
-      { expiresIn: '15m' }
-    );
-
-    // Set new cookie
-    res.cookie('accessToken', newAccessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000
-    });
-
-    return res.sendStatus(200);
-  } catch (error) {
-    return res.sendStatus(403);
-  }
-});
-
 // Logout route
 userRouter.post('/logout', (req, res) => {
   res.clearCookie('accessToken');
@@ -242,6 +197,5 @@ userRouter.post('/logout', (req, res) => {
     message: "Logged out successfully"
   });
 });
-
 
 module.exports = userRouter;

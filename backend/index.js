@@ -1,9 +1,13 @@
 const express = require("express");
 const { connection } = require("./database/db");
 const userRouter = require("./routes/userRoute");
+const taskRouter = require("./routes/taskRoute")
 const cors = require("cors");
+const cookieParser = require("cookie-parser"); 
+const authMiddleware = require("./middleware/authMiddleware");
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -16,6 +20,11 @@ app.get("/", (req, res) => {
 });
 
 app.use("/user", userRouter);
+
+app.use(authMiddleware)
+
+app.use("/task", taskRouter)
+
 
 app.listen(5000, async (req, res) => {
   try {

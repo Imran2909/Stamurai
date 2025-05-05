@@ -53,7 +53,7 @@ export default function Table() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container}> 
       {/* Header Section */}
       <div className={styles.header}>
         <h2 className={styles.title}>My Tasks</h2>

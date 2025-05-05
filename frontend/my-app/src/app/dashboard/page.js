@@ -8,7 +8,7 @@ import styles from "../styles/dashboard.module.css";
 export default function DashboardPage() { 
     const user = useSelector((state) => state.user);
     console.log(user)
-  return (
+  return ( 
     <AppLayout>
       <div className={styles.container}>
         <div className={styles.box}>

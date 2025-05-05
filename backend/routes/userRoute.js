@@ -117,7 +117,7 @@ userRouter.post('/login', async (req, res) => {
     console.log(req.body)
 
     if (!username || !password) {
-      return res.status(400).json({
+      return res.status(400).json({ 
         success: false,
         message: "Username and password are required"
       });
@@ -139,7 +139,7 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    // Generate both tokens
+    // Generate both tokens 
     const accessToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_SECRET,
@@ -153,7 +153,7 @@ userRouter.post('/login', async (req, res) => {
     );
 
     // Set both cookies
-    res.cookie('accessToken', accessToken, {
+    res.cookie('accessToken', accessToken, { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

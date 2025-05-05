@@ -5,13 +5,17 @@ import styles from "../styles/login.module.css";
 import Image from "next/image";
 import LoginBanner from "../images/Login banner.jpg";
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser } from "../redux/action";
+import { loginUser, signupUser } from "../redux/action";
+import { LOGIN_REQUEST, LOGIN_SUCCESS, STOP } from "../redux/actionTypes";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
-  const { isLoading, user, isError } = useSelector(state => state.user);
+  const user = useSelector((state) => state.user);
+  const loading = useSelector((state) => state.user.isLoading);
+  console.log(loading);
   const [isLogin, setIsLogin] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+  console.log(user);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -28,69 +32,68 @@ export default function LoginPage() {
     }));
   };
 
-  
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-
-  try {
-    if (!isLogin && formData.password !== formData.confirmPassword) {
-      throw new Error("Passwords don't match");
-    }
-
-    if (!isLogin && !formData.agreeTerms) {
-      throw new Error("You must agree to the terms");
-    }
-
-    if (isLogin) {
-      const result = await dispatch(loginUser(formData.username, formData.password));
-      if (result.success) {
-        alert("login")
-        message.success('Login successful!');
-        window.location.href = '/dashboard';
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const successMessage = (message) => {
+        messageApi.open({
+          type: "success",
+          content: message,
+        });
+      };
+      const errorMessage = (message) => {
+        messageApi.open({
+          type: "error",
+          content: message,
+        });
+      };
+      if (!isLogin && formData.password !== formData.confirmPassword) {
+        errorMessage("Passwords don't match");
+        dispatch({type:STOP})
+        return
+      }
+      if (!isLogin && !formData.agreeTerms) {
+        errorMessage("You must agree to the terms");
+        dispatch({type:STOP})  
+        return
+      }
+      if (isLogin) {
+        const result1 = await dispatch(
+          loginUser(formData.username, formData.password)
+        );
+        if (result1.success) {
+          successMessage( result1.message );
+          window.location.href = "/";
+        } else {
+          errorMessage( result1.message )
+        }
       } else {
-        message.error(result.message || 'Login failed');
+        const result = await dispatch(
+          signupUser(formData.username, formData.email, formData.password)
+        );
+        if (result.success) {
+          successMessage(result.message);
+          setFormData({
+            username: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
+            agreeTerms: false,
+          });
+          setIsLogin(true);
+        } else {
+          errorMessage(result.message)
+        }
       }
-    } else {
-      // Signup logic (optional: implement signup action too)
-      const response = await fetch('http://localhost:5000/user/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Signup failed');
-      }
-
-      message.success('Account created successfully!');
-      setIsLogin(true);
-      setFormData({
-        username: '',
-        email: '',
-        password: '',
-        confirmPassword: '',
-        agreeTerms: false
-      });
+    } catch (error) {
+      console.error("Error:", error);
+      message.error(error.message);
     }
-  } catch (error) {
-    console.error('Error:', error);
-    message.error(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
- 
+  };
+
   return (
     <div className={styles.loginContainer}>
+      {contextHolder}
       <div className={styles.bannerContainer}>
         <Image
           src={LoginBanner}

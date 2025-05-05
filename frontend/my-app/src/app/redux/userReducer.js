@@ -1,34 +1,75 @@
-    import { LOGIN_REQUEST, LOGIN_SUCCESS, LOGIN_FAILURE } from './actionTypes';
-
-    const initialState = {
+import { 
+    LOGIN_REQUEST, 
+    LOGIN_SUCCESS, 
+    LOGIN_FAILURE,
+    SIGNUP_REQUEST,
+    SIGNUP_SUCCESS,
+    SIGNUP_FAILURE,
+    LOGOUT,
+    STOP
+  } from "./actionTypes";
+   
+  const initialState = {
     isLoading: false,
-    user: null,
-    isError: null,
-    };
-
-    export const userReducer = (state = initialState, action) => {
+    token: null,
+    isError: false,
+    data: [],
+    signupSuccess: false
+  };
+  
+  export const userReducer = (state = initialState, action) => {
     switch (action.type) {
-        case LOGIN_REQUEST:
+      case LOGIN_REQUEST:
         return {
             ...state,
             isLoading: true,
-            error: null,
-        };
-        case LOGIN_SUCCESS:
+            isError: null,
+          };
+      case SIGNUP_REQUEST:
         return {
-            ...state,
-            isLoading: false,
-            user: action.payload,
-            error: null,
+          ...state,
+          isLoading: true,
+          isError: null,
         };
-        case LOGIN_FAILURE:
+      case LOGIN_SUCCESS:
+        return {
+          ...state,
+          isLoading: false,
+          token: action.payload,
+          isError: null,
+        };
+      case SIGNUP_SUCCESS:
+        return {
+          ...state,
+          isLoading: false,
+          isError: null,
+          signupSuccess: true
+        };
+      case LOGIN_FAILURE:
         return {
             ...state,
             isLoading: false,
             user: null,
-            error: action.payload,
+            isError: action.payload,
+          };
+      case SIGNUP_FAILURE:
+        return {
+          ...state,
+          isLoading: false,
+          user: null,
+          isError: action.payload,
         };
-        default:
+        case LOGOUT:
+          return{
+            ...state,
+            token:null
+          }
+    case STOP:
+        return{
+            ...state,
+            isLoading:false
+        }
+      default:
         return state;
     }
-    };
+  };

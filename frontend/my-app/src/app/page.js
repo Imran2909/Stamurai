@@ -42,7 +42,7 @@
 
 
 "use client";
-import AppLayout from "./components/AppLayout";
+import AppLayout from "./components/AppLayout"; 
 import styles from "./styles/home.module.css";
 import Image from "next/image";
 import HomeBanner from "./images/Home banner.jpg";
@@ -61,7 +61,7 @@ export default function HomePage() {
               Organize, prioritize, and track all your tasks in one place with 
               intuitive features designed to boost your productivity.
             </p>
-            <Link href="/dashboard" className={styles.dashboardButton}>
+            <Link href="/dashboard" className={styles.dashboardButton} >
               Go To Dashboard
             </Link>
           </div>

@@ -1,7 +1,11 @@
 "use client";
+import { useDispatch } from "react-redux";
 import styles from "../../styles/navbar.module.css";
+import { STOP } from "@/app/redux/actionTypes";
 
 export default function Navbar() {
+    const dispatch = useDispatch();
+  
   return (
     <div className={styles.navbar}>
       <div className={styles.searchContainer}>
@@ -45,7 +49,7 @@ export default function Navbar() {
 
       {/* Notification & Profile */}
       <div className={styles.actions}>
-        <div className={styles.notificationIcon}>
+        <div className={styles.notificationIcon} onClick={()=>{ dispatch( { type:STOP } ) }} >
           <svg
             width="20"
             height="20"

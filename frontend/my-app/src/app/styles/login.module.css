@@ -2,7 +2,7 @@
     display: flex;
     min-height: 100vh;
     width: 100%;
-    overflow: hidden;
+    /* overflow: hidden; */
   }
   
   .bannerContainer {
@@ -43,8 +43,8 @@
     padding: 2rem;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
+    box-shadow: rgba(67, 71, 85, 0.27) 0px 0px 0.25em, rgba(90, 125, 188, 0.05) 0px 0.25em 1em;
+    }
   
   .back {
     position: absolute;

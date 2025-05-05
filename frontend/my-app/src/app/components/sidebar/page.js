@@ -3,17 +3,37 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from '../../styles/sidebar.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { Modal } from 'antd'; // Import Modal from antd
+import { useState } from 'react';
 
 const navItems = [
   { label: 'Home', path: '/' }, 
   { label: 'Dashboard', path: '/dashboard' },
   { label: 'Assign Task', path: '/assign-task' },
   { label: 'Organisation', path: '/organisation' },
-  { label: 'Login', path: '/login' },
 ];
 
 export default function Sidebar() {
+  const dispatch = useDispatch();
+  const token = useSelector((store) => store.user.token);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const pathname = usePathname();
+
+  const handleLogout = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    dispatch({ type: 'LOGOUT' });
+    setIsModalOpen(false);
+    // Optional: Redirect to login page after logout
+    window.location.href = '/login';
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   return ( 
     <div className={styles.sidebarContainer}>
@@ -33,7 +53,42 @@ export default function Sidebar() {
               </span>
             </Link>
           ))}
+          
+          {/* Conditional Login/Logout */}
+          {token ? (
+            <span 
+              className={styles.navLink} 
+              onClick={handleLogout}
+              style={{ cursor: 'pointer' }}
+            >
+              <span className={styles.navItem}>
+                Logout
+              </span>
+            </span>
+          ) : (
+            <Link href="/login" className={styles.navLink}>
+              <span className={
+                pathname === '/login'
+                  ? `${styles.navItem} ${styles.activeItem}`
+                  : styles.navItem
+              }>
+                Login
+              </span>
+            </Link>
+          )}
         </nav>
+
+        {/* Logout Confirmation Modal */}
+        <Modal
+          title="Confirm Logout"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+          okText="Yes"
+          cancelText="No"
+        >
+          <p>Are you sure you want to logout?</p>
+        </Modal>
       </div>
     </div>
   );

@@ -1,14 +1,14 @@
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = async (req, res, next) => {
-  // Extract tokens from cookies
+    
   const accessToken = req.cookies.accessToken;
   const refreshToken = req.cookies.refreshToken;
-
+  
   // If no tokens at all
   if (!accessToken && !refreshToken) {
     return res.status(401).json({
-      success: false,
+      success: false, 
       message: "Authentication required"
     });
   }
@@ -17,6 +17,7 @@ const authMiddleware = async (req, res, next) => {
     // Verify access token
     const decoded = jwt.verify(accessToken, process.env.ACCESS_SECRET);
     req.userId = decoded.userId;
+    console.log(decoded.userId)
     return next();
   } catch (accessTokenError) {
     // Access token is invalid or expired

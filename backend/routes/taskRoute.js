@@ -11,7 +11,7 @@ const createLog = (action, userId) => ({
 });
 
 // 1. POST: Create a new task
-taskRouter.post("/create",  async (req, res) => {
+taskRouter.post("/create", authMiddleware,  async (req, res) => {
   try {
       const userId = req.userId; // comes from authMiddleware
       console.log(userId)
@@ -38,6 +38,7 @@ taskRouter.post("/create",  async (req, res) => {
     });
 
     await newTask.save();
+    console.log({ message: "Task created successfully", task: newTask })
     res.status(201).json({ message: "Task created successfully", task: newTask });
   } catch (error) {
     res.status(500).json({ message: "Failed to create task", error: error.message });
@@ -45,10 +46,31 @@ taskRouter.post("/create",  async (req, res) => {
 });
 
 // 2. GET: Fetch all tasks of the authenticated user
-taskRouter.get("/",  async (req, res) => {
+taskRouter.get("/all", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
+
     const tasks = await Task.find({ userId });
+    // console.log(userId,tasks)
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch tasks", error: error.message });
+  }
+});
+
+// 2. GET: Fetch all tasks of the authenticated user
+taskRouter.get("/", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const tasks = await Task.find({
+      $or: [
+        { logs: { $not: { $elemMatch: { action: 'deleted' } } } },
+        { logs: { $exists: false } }
+      ],
+      userId: req.userId
+    });
+    // console.log(userId,tasks)
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch tasks", error: error.message });
@@ -56,7 +78,7 @@ taskRouter.get("/",  async (req, res) => {
 });
 
 // 3. PATCH: Update a task by ID
-taskRouter.patch("/update/:id",  async (req, res) => {
+taskRouter.patch("/update/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const taskId = req.params.id;
@@ -78,7 +100,7 @@ taskRouter.patch("/update/:id",  async (req, res) => {
 });
 
 // 4. DELETE: Soft delete a task by pushing a 'deleted' log
-taskRouter.delete("/delete/:id",  async (req, res) => {
+taskRouter.delete("/delete/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const taskId = req.params.id;

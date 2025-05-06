@@ -114,7 +114,6 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
 userRouter.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    console.log(req.body)
 
     if (!username || !password) {
       return res.status(400).json({ 
@@ -166,8 +165,12 @@ userRouter.post('/login', async (req, res) => {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
+    console.log("Incoming cookies on login request:", req.cookies);
 
-    // Return both tokens in response as well (optional)
+    console.log("Set-Cookie headers:", res.getHeaders()["set-cookie"]);
+
+
+    // console cookies
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -189,14 +192,28 @@ userRouter.post('/login', async (req, res) => {
   }
 });
 
-// Logout route
+
 userRouter.post('/logout', (req, res) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
+  console.log("Cookies before clearing:", req.cookies);
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    path: '/', // VERY IMPORTANT: must match the path used in login
+  };
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+
+  console.log("Set-Cookie headers after clearing:", res.getHeaders()['set-cookie']);
+
   return res.status(200).json({
     success: true,
     message: "Logged out successfully"
   });
 });
+
+
 
 module.exports = userRouter;

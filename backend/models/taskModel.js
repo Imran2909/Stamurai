@@ -7,7 +7,7 @@ const taskSchema = mongoose.Schema({
   dueTime: { type: String }, // stored as HH:mm format
   priority: {
     type: String,
-    enum: ["low", "med", "high"],
+    enum: ["low", "medium", "high"],
     default: "low",
   },
   status: {

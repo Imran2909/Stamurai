@@ -1,71 +1,89 @@
-
-'use client';
-import { useState } from 'react';
-import styles from '../../styles/table.module.css';
-import Form from '../form/page';
-
-const taskData = [
-  {
-    id: 1,
-    title: 'Complete project proposal',
-    description: 'Draft and submit the client proposal',
-    dueDate: '2023-11-15',
-    dueTime: '14:30',
-    priority: 'High',
-    status: 'Pending',
-    frequency: 'Once'
-  },
-  {
-    id: 2,
-    title: 'Team meeting',
-    description: 'Weekly sprint planning',
-    dueDate: '2023-11-10',
-    dueTime: '09:00',
-    priority: 'Medium',
-    status: 'In Progress',
-    frequency: 'Weekly'
-  },
-  {
-    id: 3,
-    title: 'Code review',
-    description: 'Review PRs for feature branch',
-    dueDate: '2023-11-08',
-    dueTime: '16:45',
-    priority: 'Low',
-    status: 'Completed',
-    frequency: 'Daily'
-  }
-];
+"use client";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchTasks, deleteTask } from "../../redux/action";
+import { Modal } from "antd"; // AntD modal
+import styles from "../../styles/table.module.css";
+import Form from "../form/page";
+import { Button, message, Space } from "antd";
 
 const formatDateTime = (dateStr, timeStr) => {
   const date = new Date(`${dateStr}T${timeStr}`);
-  return date.toLocaleString('en-US', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  }).replace(',', '');
+  return date
+    .toLocaleString("en-US", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(",", "");
 };
 
 export default function Table() {
+  const dispatch = useDispatch();
+  const [messageApi, contextHolder] = message.useMessage();
+  const { tasks, loading, error } = useSelector((state) => state.task);
+  const token = useSelector((store) => store.user.token);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchTasks());
+  }, [dispatch]);
+
+  const confirmDelete = (id) => {
+    setDeleteId(id);
+    setIsModalOpen(true);
+  };
+
+  const successToast = () => {
+    messageApi.open({
+      type: "success",
+      content: "✅ Task deleted successfully.",
+    });
+  };
+  const failToast = () => {
+    messageApi.open({
+      type: "error",
+      content: "❌ Failed to delete task.",
+    });
+  };
+
+  const handleDelete = async () => {
+    if (deleteId) {
+      const res = await dispatch(deleteTask(deleteId, token));
+      if (res == "deleted") {
+        successToast();
+      } else if (res == "failed") {
+        failToast()
+      }
+    }
+    setIsModalOpen(false);
+    setDeleteId(null);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+    setDeleteId(null);
+  };
 
   return (
-    <div className={styles.container}> 
-      {/* Header Section */}
+    <div className={styles.container}>
       <div className={styles.header}>
         <h2 className={styles.title}>My Tasks</h2>
-        <button 
+        <button
           className={styles.addButton}
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => setIsFormOpen(true)}
         >
           Add Task
         </button>
       </div>
 
-      {/* Table Section */}
+      {loading && <p>Loading tasks...</p>}
+
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -81,52 +99,80 @@ export default function Table() {
             </tr>
           </thead>
           <tbody>
-            {taskData.map((task, index) => (
-              <tr key={task.id}>
-                <td>{index + 1}</td>
-                <td>{task.title}</td>
-                <td className={styles.description}>{task.description}</td>
-                <td>{formatDateTime(task.dueDate, task.dueTime)}</td>
-                <td>
-                  <span className={`${styles.badge} ${styles[task.priority.toLowerCase()]}`}>
-                    {task.priority}
-                  </span>
-                </td>
-                <td >
-                  <span className={`${styles.badge} ${styles[task.status.replace(' ', '').toLowerCase()]}`}>
-                    {task.status}
-                  </span>
-                </td>
-                <td>{task.frequency}</td>
-                <td>
-                  <div className={styles.actions}>
-                    <button className={styles.edit}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </button>
-                    <button className={styles.delete}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path d="M3 6h18" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      </svg>
-                    </button>
-                  </div>
+            {error === "Unauthorized" ? (
+              <tr>
+                <td colSpan="8" style={{ textAlign: "center", color: "red" }}>
+                  You are not authorized. Please log in to view your tasks.
                 </td>
               </tr>
-            ))}
+            ) : tasks.length === 0 && !loading && !error ? (
+              <tr>
+                <td colSpan="8" style={{ textAlign: "center" }}>
+                  No tasks found. Start by adding a task!
+                </td>
+              </tr>
+            ) : (
+              tasks.map((task, index) => (
+                <tr key={task._id || index}>
+                  <td>{index + 1}</td>
+                  <td>{task.title}</td>
+                  <td className={styles.description}>{task.description}</td>
+                  <td>{formatDateTime(task.dueDate, task.dueTime)}</td>
+                  <td>
+                    <span
+                      className={`${styles.badge} ${
+                        styles[task.priority.toLowerCase()]
+                      }`}
+                    >
+                      {task.priority}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`${styles.badge} ${
+                        styles[task.status.replace(" ", "").toLowerCase()]
+                      }`}
+                    >
+                      {task.status}
+                    </span>
+                  </td>
+                  <td>{task.frequency}</td>
+                  <td>
+                    <div className={styles.actions}>
+                      <button className={styles.edit}>✏️</button>
+                      <button
+                        className={styles.delete}
+                        onClick={() => confirmDelete(task._id)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
+      {/* Delete confirmation modal */}
+      <Modal
+        open={isModalOpen}
+        onOk={handleDelete}
+        onCancel={handleCancel}
+        okText="Yes"
+        cancelText="No"
+      >
+        <p>Are you sure you want to Delete this task?</p>
+      </Modal>
+
+      {/* Add task modal */}
+      {isFormOpen && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>
-            <button 
+            <button
               className={styles.close}
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => setIsFormOpen(false)}
             >
               ×
             </button>

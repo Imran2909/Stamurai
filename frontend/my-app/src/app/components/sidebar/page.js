@@ -1,17 +1,18 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import styles from '../../styles/sidebar.module.css';
-import { useDispatch, useSelector } from 'react-redux';
-import { Modal } from 'antd'; // Import Modal from antd
-import { useState } from 'react';
+import Link from "next/link";
+import styles from "../../styles/sidebar.module.css";
+import { useDispatch, useSelector } from "react-redux";
+import { Modal, message } from "antd";
+import { useState } from "react";
+import { logoutUser } from "../../redux/action";
+import { usePathname, useRouter } from "next/navigation"; // ✅ Add this
 
 const navItems = [
-  { label: 'Home', path: '/' }, 
-  { label: 'Dashboard', path: '/dashboard' },
-  { label: 'Assign Task', path: '/assign-task' },
-  { label: 'Organisation', path: '/organisation' },
+  { label: "Home", path: "/" },
+  { label: "Dashboard", path: "/dashboard" },
+  { label: "Assign Task", path: "/assign-task" },
+  { label: "Organisation", path: "/organisation" },
 ];
 
 export default function Sidebar() {
@@ -19,23 +20,33 @@ export default function Sidebar() {
   const token = useSelector((store) => store.user.token);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter(); // ✅ useRouter hook
+  const [messageApi, contextHolder] = message.useMessage();
 
-  const handleLogout = () => {
-    setIsModalOpen(true);
-  };
+  const handleLogout = () => setIsModalOpen(true);
 
-  const handleOk = () => {
-    dispatch({ type: 'LOGOUT' });
+  const handleOk = async () => {
+   
+    
+    const success = await dispatch(logoutUser());
     setIsModalOpen(false);
-    // Optional: Redirect to login page after logout
-    window.location.href = '/login';
-  };
 
-  const handleCancel = () => {
-    setIsModalOpen(false);
+    if (success) {
+      messageApi.open({
+        type: "success",
+        content: "Logout Successful",
+      });
+      router.push('/login'); // ✅ Proper redirect
+    } else {
+      messageApi.open({
+        type: "error",
+        content: message,
+      });
+    }
   };
+  const handleCancel = () => setIsModalOpen(false);
 
-  return ( 
+  return (
     <div className={styles.sidebarContainer}>
       <div className={styles.sidebarContent}>
         <div className={styles.sidebarHeader}>
@@ -44,41 +55,41 @@ export default function Sidebar() {
         <nav className={styles.navMenu}>
           {navItems.map((item) => (
             <Link key={item.path} href={item.path} className={styles.navLink}>
-              <span className={
-                pathname === item.path
-                  ? `${styles.navItem} ${styles.activeItem}`
-                  : styles.navItem
-              }>
+              <span
+                className={
+                  pathname === item.path
+                    ? `${styles.navItem} ${styles.activeItem}`
+                    : styles.navItem
+                }
+              >
                 {item.label}
               </span>
             </Link>
           ))}
-          
-          {/* Conditional Login/Logout */}
+
           {token ? (
-            <span 
-              className={styles.navLink} 
+            <span
+              className={styles.navLink}
               onClick={handleLogout}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
             >
-              <span className={styles.navItem}>
-                Logout
-              </span>
+              <span className={styles.navItem}>Logout</span>
             </span>
           ) : (
             <Link href="/login" className={styles.navLink}>
-              <span className={
-                pathname === '/login'
-                  ? `${styles.navItem} ${styles.activeItem}`
-                  : styles.navItem
-              }>
+              <span
+                className={
+                  pathname === "/login"
+                    ? `${styles.navItem} ${styles.activeItem}`
+                    : styles.navItem
+                }
+              >
                 Login
               </span>
             </Link>
           )}
         </nav>
 
-        {/* Logout Confirmation Modal */}
         <Modal
           title="Confirm Logout"
           open={isModalOpen}

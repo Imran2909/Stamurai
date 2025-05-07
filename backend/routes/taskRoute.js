@@ -83,7 +83,6 @@ taskRouter.patch("/update/:id", authMiddleware, async (req, res) => {
     const userId = req.userId;
     const taskId = req.params.id;
     const updateData = req.body;
-    // Add update log
     updateData.$push = {
       logs: createLog("updated", userId),
     };

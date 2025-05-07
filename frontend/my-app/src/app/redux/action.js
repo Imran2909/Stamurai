@@ -18,7 +18,6 @@ import {
 } from "./actionTypes";
 import axios from 'axios'
 
-
 export const signupUser = (username, email, password) => async (dispatch) => {
   dispatch({ type: SIGNUP_REQUEST });
 
@@ -160,3 +159,23 @@ export const deleteTask = (id, token) => async (dispatch) => {
     return 'failed'
   }
 };
+
+export const updateTask = (id, updatedData) => async (dispatch) => {
+  dispatch({ type: FETCH_TASKS_REQUEST }); // optional: reuse for loader
+
+  try {
+    const res = await axios.patch(`http://localhost:5000/task/update/${id}`, updatedData, {
+      withCredentials: true,
+    });
+
+    dispatch(fetchTasks()); // Refresh task list
+    return { payload: res.data.task };
+  } catch (error) {
+    dispatch({
+      type: FETCH_TASKS_FAILURE,
+      payload: error.response?.data?.message || "Failed to update task",
+    });
+    return { error };
+  }
+};
+

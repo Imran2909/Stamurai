@@ -97,6 +97,7 @@ export const fetchTasks = () => {
       });
 
       dispatch({ type: FETCH_TASKS_SUCCESS, payload: response.data });
+      console.log(response.data)
     } catch (error) {
       if (error.response && error.response.status === 401) {
         dispatch({ type: FETCH_TASKS_FAILURE, payload: 'Unauthorized' });

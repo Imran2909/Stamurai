@@ -1,65 +1,64 @@
-'use client';
-import { useState } from 'react';
-import styles from '../../styles/form.module.css';
-import { useDispatch } from 'react-redux';
-import { createTask } from '../../redux/action';
-import { message } from 'antd';
+"use client";
+import { useState } from "react";
+import styles from "../../styles/form.module.css";
+import { useDispatch } from "react-redux";
+import { createTask } from "../../redux/action";
+import { message } from "antd";
 
 export default function Form({ onSuccess, onClose }) {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    dueDate: '',
-    dueTime: '',
-    priority: 'medium',
-    frequency: 'once',
-    status: 'pending',
+    title: "",
+    description: "",
+    dueDate: "",
+    dueTime: "",
+    priority: "medium",
+    frequency: "once",
+    status: "pending",
   });
   const [messageApi, contextHolder] = message.useMessage();
 
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [id]: value,
     }));
   };
 
+  // In your Form component's handleSubmit function
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
-      // Dispatch the createTask action
       const result = await dispatch(createTask(formData));
-      
-      if (result?.payload) { // Check if we got a successful response
+
+      if (result?.payload) {
         messageApi.open({
-          type: 'success',
-          content: 'Task created successfully',
-        });
-        
-        // Reset form
-        setFormData({
-          title: '',
-          description: '',
-          dueDate: '',
-          dueTime: '',
-          priority: 'medium',
-          frequency: 'once',
-          status: 'pending',
+          type: "success",
+          content: "Task created successfully",
         });
 
-        // Notify parent if needed
+        // Reset form
+        setFormData({
+          title: "",
+          description: "",
+          dueDate: "",
+          dueTime: "",
+          priority: "medium",
+          frequency: "once",
+          status: "pending",
+        });
+
+        // Notify parent and close modal
         onSuccess?.();
-        onClose?.(); // Close modal if this is in a modal
+        onClose?.(); // This will close the modal
       }
     } catch (error) {
       messageApi.open({
-        type: 'error',
-        content: error.message || 'Failed to create task',
+        type: "error",
+        content: error.message || "Failed to create task",
       });
-      console.error('Task creation error:', error);
     }
   };
 
@@ -67,11 +66,13 @@ export default function Form({ onSuccess, onClose }) {
     <div className={styles.formContainer}>
       {contextHolder}
       <h2 className={styles.formTitle}>Create a New Task</h2>
-      
+
       <form onSubmit={handleSubmit} className={styles.taskForm}>
         {/* Title Input */}
         <div className={styles.formGroup}>
-          <label htmlFor="title" className={styles.inputLabel}>Title</label>
+          <label htmlFor="title" className={styles.inputLabel}>
+            Title
+          </label>
           <input
             type="text"
             id="title"
@@ -84,7 +85,9 @@ export default function Form({ onSuccess, onClose }) {
 
         {/* Description Input */}
         <div className={styles.formGroup}>
-          <label htmlFor="description" className={styles.inputLabel}>Description</label>
+          <label htmlFor="description" className={styles.inputLabel}>
+            Description
+          </label>
           <textarea
             id="description"
             value={formData.description}
@@ -97,7 +100,9 @@ export default function Form({ onSuccess, onClose }) {
         {/* Date/Time Group */}
         <div className={styles.dateTimeGroup}>
           <div className={styles.formGroup}>
-            <label htmlFor="dueDate" className={styles.inputLabel}>Due Date</label>
+            <label htmlFor="dueDate" className={styles.inputLabel}>
+              Due Date
+            </label>
             <input
               type="date"
               id="dueDate"
@@ -109,7 +114,9 @@ export default function Form({ onSuccess, onClose }) {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="dueTime" className={styles.inputLabel}>Due Time</label>
+            <label htmlFor="dueTime" className={styles.inputLabel}>
+              Due Time
+            </label>
             <input
               type="time"
               id="dueTime"
@@ -123,8 +130,10 @@ export default function Form({ onSuccess, onClose }) {
         {/* Select Group */}
         <div className={styles.selectGroup}>
           <div className={styles.formGroup}>
-            <label htmlFor="priority" className={styles.inputLabel}>Priority</label>
-            <select 
+            <label htmlFor="priority" className={styles.inputLabel}>
+              Priority
+            </label>
+            <select
               id="priority"
               value={formData.priority}
               onChange={handleChange}
@@ -137,12 +146,15 @@ export default function Form({ onSuccess, onClose }) {
           </div>
 
           <div className={styles.formGroup}>
-            <label htmlFor="frequency" className={styles.inputLabel}>Frequency</label>
-            <select 
+            <label htmlFor="frequency" className={styles.inputLabel}>
+              Frequency
+            </label>
+            <select
               id="frequency"
               value={formData.frequency}
               onChange={handleChange}
-              className={styles.selectInput}>
+              className={styles.selectInput}
+            >
               <option value="once">Once</option>
               <option value="daily">Daily</option>
               <option value="weekly">Weekly</option>
@@ -151,7 +163,9 @@ export default function Form({ onSuccess, onClose }) {
           </div>
         </div>
 
-        <button type="submit"className={styles.submitButton}>Create Task</button>
+        <button type="submit" className={styles.submitButton}>
+          Create Task
+        </button>
       </form>
     </div>
   );

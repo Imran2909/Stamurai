@@ -1,38 +1,358 @@
+// "use client";
+// import { useEffect, useState } from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { fetchTasks, deleteTask } from "../../redux/action";
+// import { Modal } from "antd"; // AntD modal
+// import styles from "../../styles/table.module.css";
+// import Form from "../form/page";
+// import { Button, message, Space } from "antd";
+
+// const formatDateTime = (dateStr, timeStr) => {
+//   // Convert 12-hour time to 24-hour format
+//   const convertTo24Hour = (time12h) => {
+//     const [time, modifier] = time12h.split(" ");
+//     let [hours, minutes] = time.split(":");
+
+//     if (hours === "12") {
+//       hours = "00";
+//     }
+
+//     if (modifier === "PM") {
+//       hours = parseInt(hours, 10) + 12;
+//     }
+
+//     return `${hours}:${minutes}`;
+//   };
+
+//   // Format the date part (remove timezone info if present)
+//   const datePart = dateStr.split("T")[0];
+
+//   // Convert time if it's in 12-hour format
+//   const timePart =
+//     timeStr.includes("AM") || timeStr.includes("PM")
+//       ? convertTo24Hour(timeStr)
+//       : timeStr;
+
+//   try {
+//     const date = new Date(`${datePart}T${timePart}`);
+//     return date
+//       .toLocaleString("en-US", {
+//         year: "numeric",
+//         month: "2-digit",
+//         day: "2-digit",
+//         hour: "2-digit",
+//         minute: "2-digit",
+//         hour12: true,
+//       })
+//       .replace(",", "");
+//   } catch (e) {
+//     console.error("Date formatting error:", e);
+//     return "Invalid Date";
+//   }
+// };
+
+// export default function Table({ filter = "all" }) {
+//   const dispatch = useDispatch();
+//   const [messageApi, contextHolder] = message.useMessage();
+//   const {
+//     tasks: allTasks,
+//     loading,
+//     error,
+//   } = useSelector((state) => state.task);
+//   const token = useSelector((store) => store.user.token);
+//   const [isModalOpen, setIsModalOpen] = useState(false);
+//   const [deleteId, setDeleteId] = useState(null);
+//   const [isFormOpen, setIsFormOpen] = useState(false);
+
+//   useEffect(() => {
+//     dispatch(fetchTasks());
+//   }, [dispatch]);
+
+//   const filteredTasks = allTasks.filter((task) => {
+//     if (filter === "overdue") {
+//       const now = new Date();
+//       const dueDate = new Date(`${task.dueDate}T${task.dueTime}`);
+//       return dueDate < now && task.status !== "completed";
+//     }
+//     return true; // Return all tasks if filter is "all"
+//   });
+
+//   const confirmDelete = (id) => {
+//     setDeleteId(id);
+//     setIsModalOpen(true);
+//   };
+
+//   const successToast = () => {
+//     messageApi.open({
+//       type: "success",
+//       content: "✅ Task deleted successfully.",
+//     });
+//   };
+//   const failToast = () => {
+//     messageApi.open({
+//       type: "error",
+//       content: "❌ Failed to delete task.",
+//     });
+//   };
+
+//   const handleDelete = async () => {
+//     if (deleteId) {
+//       const res = await dispatch(deleteTask(deleteId, token));
+//       if (res == "deleted") {
+//         successToast();
+//       } else if (res == "failed") {
+//         failToast();
+//       }
+//     }
+//     setIsModalOpen(false);
+//     setDeleteId(null);
+//   };
+
+//   const handleCancel = () => {
+//     setIsModalOpen(false);
+//     setDeleteId(null);
+//   };
+
+//   return (
+//     <div className={styles.container}>
+//       {/* <div className={styles.tableWrapper}> */}
+//       <div className={styles.header}>
+//         <div className={styles.titleWrapper}>
+//           <h2 className={styles.title}>
+//             {filter === "all" ? "My Tasks" : "Overdue Tasks"}
+//           </h2>
+         
+//         </div>
+//         {filter === "all" && (
+//           <button
+//             className={styles.addButton}
+//             onClick={() => setIsFormOpen(true)}
+//           >
+//             Add Task
+//           </button>
+//         )}
+//       </div>
+
+//         {loading && <p>Loading tasks...</p>}
+
+//         <div className={styles.tableWrapper}>
+//           <table className={styles.table}>
+//             <thead>
+//               <tr>
+//                 <th>Sr.No</th>
+//                 <th>Title</th>
+//                 <th>Description</th>
+//                 <th>Due On</th>
+//                 <th>Priority</th>
+//                 <th>Status</th>
+//                 <th>Frequency</th>
+//                 <th>Actions</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {error === "Unauthorized" ? (
+//                 <tr>
+//                   <td colSpan="8" style={{ textAlign: "center", color: "red" }}>
+//                     You are not authorized. Please log in to view your tasks.
+//                   </td>
+//                 </tr>
+//               ) : filteredTasks.length === 0 && !loading && !error ? (
+//                 <tr>
+//                   <td colSpan="8" style={{ textAlign: "center" }}>
+//                     {filter === "overdue"
+//                       ? "No overdue tasks!"
+//                       : "No tasks found. Start by adding a task!"}
+//                   </td>
+//                 </tr>
+//               ) : (
+//                 filteredTasks.map((task, index) => (
+//                   <tr key={task._id || index}>
+//                     <td>{index + 1}</td>
+//                     <td className={styles.description}>{task.title}</td>
+//                     <td className={styles.description}>{task.description}</td>
+//                     <td>{formatDateTime(task.dueDate, task.dueTime)}</td>
+//                     <td>
+//                       <span
+//                         className={`${styles.badge} ${
+//                           styles[task.priority.toLowerCase()]
+//                         }`}
+//                       >
+//                         {task.priority}
+//                       </span>
+//                     </td>
+//                     <td>
+//                       <span
+//                         className={`${styles.badge} ${
+//                           styles[task.status.replace(" ", "").toLowerCase()]
+//                         }`}
+//                       >
+//                         {task.status}
+//                       </span>
+//                     </td>
+//                     <td>{task.frequency}</td>
+//                     <td>
+//                       <div className={styles.actions}>
+//                         <button className={styles.edit}>✏️</button>
+//                         <button
+//                           className={styles.delete}
+//                           onClick={() => confirmDelete(task._id)}
+//                         >
+//                           🗑️
+//                         </button>
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))
+//               )}
+//             </tbody>
+//           </table>
+//         {/* </div> */}
+//       </div>
+//       {/* Delete confirmation modal */}
+//       <Modal
+//         open={isModalOpen}
+//         onOk={handleDelete}
+//         onCancel={handleCancel}
+//         okText="Yes"
+//         cancelText="No"
+//       >
+//         <p>Are you sure you want to Delete this task?</p>
+//       </Modal>
+
+//       {/* Add task modal */}
+//       {isFormOpen && (
+//         <div className={styles.modal}>
+//           <div className={styles.modalContent}>
+//             <button
+//               className={styles.close}
+//               onClick={() => setIsFormOpen(false)}
+//             >
+//               ×
+//             </button>
+//             <Form />
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
 "use client";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, deleteTask } from "../../redux/action";
-import { Modal } from "antd"; // AntD modal
+import { Modal, message } from "antd";
 import styles from "../../styles/table.module.css";
 import Form from "../form/page";
-import { Button, message, Space } from "antd";
 
 const formatDateTime = (dateStr, timeStr) => {
-  const date = new Date(`${dateStr}T${timeStr}`);
-  return date
-    .toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    })
-    .replace(",", "");
+  const convertTo24Hour = (time12h) => {
+    const [time, modifier] = time12h.split(" ");
+    let [hours, minutes] = time.split(":");
+
+    if (hours === "12") hours = "00";
+    if (modifier === "PM") hours = parseInt(hours, 10) + 12;
+
+    return `${hours}:${minutes}`;
+  };
+
+  const datePart = dateStr.split("T")[0];
+  const timePart =
+    timeStr.includes("AM") || timeStr.includes("PM")
+      ? convertTo24Hour(timeStr)
+      : timeStr;
+
+  try {
+    const date = new Date(`${datePart}T${timePart}`);
+    return date
+      .toLocaleString("en-US", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      })
+      .replace(",", "");
+  } catch (e) {
+    console.error("Date formatting error:", e);
+    return "Invalid Date";
+  }
 };
 
-export default function Table() {
+export default function Table({ filter = "all" }) {
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
-  const { tasks, loading, error } = useSelector((state) => state.task);
+  const { tasks: allTasks, loading, error } = useSelector((state) => state.task);
   const token = useSelector((store) => store.user.token);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
+  const [filteredTasks, setFilteredTasks] = useState([]);
+
+  const getFilteredTasks = (filterType, tasksList) => {
+    const now = new Date();
+  
+    const toValidDate = (dateStr, timeStr) => {
+      const convertTo24Hour = (time12h) => {
+        const [time, modifier] = time12h.split(" ");
+        let [hours, minutes] = time.split(":");
+        if (hours === "12") hours = "00";
+        if (modifier === "PM") hours = String(parseInt(hours, 10) + 12);
+        return `${hours}:${minutes}`;
+      };
+  
+      const datePart = dateStr.split("T")[0];
+      const timePart =
+        timeStr.includes("AM") || timeStr.includes("PM")
+          ? convertTo24Hour(timeStr)
+          : timeStr;
+  
+      return new Date(`${datePart}T${timePart}`);
+    };
+  
+    return tasksList.filter((task) => {
+      const due = toValidDate(task.dueDate, task.dueTime);
+      if (isNaN(due.getTime())) return false;
+  
+      if (filterType === "overdue") {
+        return due < now && task.status !== "completed";
+      }
+      return due >= now && task.status !== "completed";
+    });
+  };
+  
+
   useEffect(() => {
     dispatch(fetchTasks());
   }, [dispatch]);
+
+  useEffect(() => {
+    if (allTasks.length) {
+      setFilteredTasks(getFilteredTasks(filter, allTasks));
+    }
+  }, [allTasks, filter]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFilteredTasks(getFilteredTasks(filter, allTasks));
+    }, 1000); // check every second
+    return () => clearInterval(interval);
+  }, [filter, allTasks]);
 
   const confirmDelete = (id) => {
     setDeleteId(id);
@@ -55,10 +375,10 @@ export default function Table() {
   const handleDelete = async () => {
     if (deleteId) {
       const res = await dispatch(deleteTask(deleteId, token));
-      if (res == "deleted") {
+      if (res === "deleted") {
         successToast();
-      } else if (res == "failed") {
-        failToast()
+      } else {
+        failToast();
       }
     }
     setIsModalOpen(false);
@@ -72,14 +392,21 @@ export default function Table() {
 
   return (
     <div className={styles.container}>
+      {contextHolder}
       <div className={styles.header}>
-        <h2 className={styles.title}>My Tasks</h2>
-        <button
-          className={styles.addButton}
-          onClick={() => setIsFormOpen(true)}
-        >
-          Add Task
-        </button>
+        <div className={styles.titleWrapper}>
+          <h2 className={styles.title}>
+            {filter === "all" ? "My Tasks" : "Overdue Tasks"}
+          </h2>
+        </div>
+        {filter === "all" && (
+          <button
+            className={styles.addButton}
+            onClick={() => setIsFormOpen(true)}
+          >
+            Add Task
+          </button>
+        )}
       </div>
 
       {loading && <p>Loading tasks...</p>}
@@ -105,17 +432,19 @@ export default function Table() {
                   You are not authorized. Please log in to view your tasks.
                 </td>
               </tr>
-            ) : tasks.length === 0 && !loading && !error ? (
+            ) : filteredTasks.length === 0 && !loading && !error ? (
               <tr>
                 <td colSpan="8" style={{ textAlign: "center" }}>
-                  No tasks found. Start by adding a task!
+                  {filter === "overdue"
+                    ? "No overdue tasks!"
+                    : "No tasks found. Start by adding a task!"}
                 </td>
               </tr>
             ) : (
-              tasks.map((task, index) => (
+              filteredTasks.map((task, index) => (
                 <tr key={task._id || index}>
                   <td>{index + 1}</td>
-                  <td>{task.title}</td>
+                  <td className={styles.description}>{task.title}</td>
                   <td className={styles.description}>{task.description}</td>
                   <td>{formatDateTime(task.dueDate, task.dueTime)}</td>
                   <td>
@@ -155,7 +484,7 @@ export default function Table() {
         </table>
       </div>
 
-      {/* Delete confirmation modal */}
+      {/* Delete Confirmation Modal */}
       <Modal
         open={isModalOpen}
         onOk={handleDelete}
@@ -166,7 +495,7 @@ export default function Table() {
         <p>Are you sure you want to Delete this task?</p>
       </Modal>
 
-      {/* Add task modal */}
+      {/* Create Task Modal */}
       {isFormOpen && (
         <div className={styles.modal}>
           <div className={styles.modalContent}>

@@ -1,3 +1,4 @@
+/* dashboard.module.css */
   
   .box {
     height: 82vh;
@@ -24,4 +25,134 @@
     width: 1px;
     background-color: #e0e0e0;
     margin: 10px 0;
+  }
+  .container {
+    border: 1px solid rgb(255, 255, 255);
+  }
+  
+  .box {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sectionTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+  }
+  
+  .tableSection {
+    margin-bottom: 2rem;
+  }
+  
+  .container {
+    /* padding: 20px; */
+    height: 100%;
+  }
+  
+  .box {
+    height: calc(100vh - 107px); /* Adjust based on your header/nav height */
+    width: 98%;
+    margin: 0.1% 1%;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, 
+                rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* border: 1px solid green; */
+  }
+  
+  .tablesContainer {
+    /* border: 1px solid blue; */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-y: auto; /* Single scrollbar for the container */
+    /* padding: 15px; */
+    gap: 30px;
+  }
+  
+  .tableSection {
+    flex: none; /* Don't allow sections to grow */
+    min-height: 300px; /* Minimum height for each table */
+  }
+  
+  .sectionTitle {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #eee;
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 1;
+    /* padding-top: 10px; */
+    /* padding-bottom: 10px; */
+  }
+
+  .container {
+    /* padding: 20px; */
+    height: 100%;
+  }
+  
+  .box {
+    height: calc(100vh - 107px);
+    width: 98%;
+    margin: 0.1% 1%;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, 
+                rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: white;
+  }
+  
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 15px;
+  }
+  
+  .tab {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 700;
+    color: #64748b;
+    position: relative;
+    transition: all 0.2s;
+    
+  }
+  
+  .tab:hover {
+    color: #334155;
+  }
+  
+  .tab.active {
+    color: #3b82f6;
+  }
+  
+  .tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #3b82f6;
+  }
+  
+  .tabContent {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
   }

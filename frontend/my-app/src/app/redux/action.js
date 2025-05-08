@@ -15,6 +15,7 @@ import {
   DELETE_TASK_REQUEST,
   DELETE_TASK_SUCCESS,
   DELETE_TASK_FAILURE,
+  SET_SEARCH_QUERY
 } from "./actionTypes";
 import axios from 'axios'
 
@@ -96,7 +97,7 @@ export const fetchTasks = () => {
       });
 
       dispatch({ type: FETCH_TASKS_SUCCESS, payload: response.data });
-      console.log(response.data)
+      // console.log(response.data)
     } catch (error) {
       if (error.response && error.response.status === 401) {
         dispatch({ type: FETCH_TASKS_FAILURE, payload: 'Unauthorized' });
@@ -179,3 +180,7 @@ export const updateTask = (id, updatedData) => async (dispatch) => {
   }
 };
 
+export const setSearchQuery = (query) => ({
+  type: SET_SEARCH_QUERY,
+  payload: query,
+});

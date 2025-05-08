@@ -1,11 +1,39 @@
 "use client";
 import { useDispatch } from "react-redux";
 import styles from "../../styles/navbar.module.css";
-import { STOP } from "@/app/redux/actionTypes";
+import { STOP, SET_SEARCH_QUERY, SET_PRIORITY_FILTER, SET_STATUS_FILTER, SET_DUE_DATE_FILTER } from "../../redux/actionTypes";
 
 export default function Navbar() {
-    const dispatch = useDispatch();
-  
+  const dispatch = useDispatch();
+
+  const handleSearchChange = (e) => {
+    dispatch({ 
+      type: SET_SEARCH_QUERY, 
+      payload: e.target.value 
+    });
+  };
+
+  const handlePriorityFilterChange = (e) => {
+    dispatch({
+      type: SET_PRIORITY_FILTER,
+      payload: e.target.value
+    });
+  };
+
+  const handleStatusFilterChange = (e) => {
+    dispatch({
+      type: SET_STATUS_FILTER,
+      payload: e.target.value
+    });
+  };
+
+  const handleDueDateFilterChange = (e) => {
+    dispatch({
+      type: SET_DUE_DATE_FILTER,
+      payload: e.target.value
+    });
+  };
+
   return (
     <div className={styles.navbar}>
       <div className={styles.searchContainer}>
@@ -27,23 +55,45 @@ export default function Navbar() {
           type="search"
           placeholder="Search..."
           className={styles.searchInput}
+          onChange={handleSearchChange}
         />
       </div>
 
       {/* Filters */}
       <div className={styles.filters}>
-        <select className={styles.filterDropdown}>
-          <option value="">Filter 1</option>
-          <option value="option1">Option 1</option>
-          <option value="option2">Option 2</option>
-          <option value="option3">Option 3</option>
+        {/* Priority Filter */}
+        <select 
+          className={styles.filterDropdown}
+          onChange={handlePriorityFilterChange}
+          defaultValue=""
+        >
+          <option value="">Priority (All)</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
         </select>
 
-        <select className={styles.filterDropdown}>
-          <option value="">Filter 2</option>
-          <option value="option1">Option 1</option>
-          <option value="option2">Option 2</option>
-          <option value="option3">Option 3</option>
+        {/* Status Filter */}
+        <select 
+          className={styles.filterDropdown}
+          onChange={handleStatusFilterChange}
+          defaultValue=""
+        >
+          <option value="">Status (All)</option>
+          <option value="pending">Pending</option>
+          <option value="inprogress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+
+        {/* Due Date Filter */}
+        <select 
+          className={styles.filterDropdown}
+          onChange={handleDueDateFilterChange}
+          defaultValue=""
+        >
+          <option value="">Due Date (All)</option>
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
         </select>
       </div>
 
@@ -66,9 +116,8 @@ export default function Navbar() {
           <span className={styles.notificationBadge}>5</span>
         </div>
 
-        <div className={styles.profileImage}>
-
-        </div>
+        {/* <div className={styles.profileImage}>
+        </div> */}
       </div>
     </div>
   );

@@ -1,0 +1,59 @@
+.tableWrapper {
+    padding: 1rem;
+    background: #fff;
+    border-radius: 12px;
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); */
+    /* border: 1px solid red; */
+    height: 78.6vh;
+  }
+  
+  .controls {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  
+  .controls input,
+  .controls select {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  
+  .taskTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .taskTable th,
+  .taskTable td {
+    border: 1px solid #e0e0e0;
+    padding: 0.75rem;
+    text-align: left;
+  }
+  
+  .taskTable th {
+    background-color: #f0f2f5;
+    font-weight: 600;
+  }
+  
+  .taskTable tr:nth-child(even) {
+    background-color: #fafafa;
+  }
+  .actionBtn {
+    margin-right: 0.5rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .actionBtn:last-child {
+    background-color: #dc3545;
+  }
+  

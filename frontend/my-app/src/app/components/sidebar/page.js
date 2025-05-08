@@ -1,12 +1,11 @@
 "use client";
-
 import Link from "next/link";
 import styles from "../../styles/sidebar.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { Modal, message } from "antd";
 import { useState } from "react";
 import { logoutUser } from "../../redux/action";
-import { usePathname, useRouter } from "next/navigation"; // ✅ Add this
+import { usePathname, useRouter } from "next/navigation";
 
 const navItems = [
   { label: "Home", path: "/" },

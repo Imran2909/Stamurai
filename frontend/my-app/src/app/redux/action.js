@@ -15,7 +15,13 @@ import {
   DELETE_TASK_REQUEST,
   DELETE_TASK_SUCCESS,
   DELETE_TASK_FAILURE,
-  SET_SEARCH_QUERY
+  SET_SEARCH_QUERY,
+  ASSIGN_TASK_REQUEST,
+  ASSIGN_TASK_SUCCESS,
+  ASSIGN_TASK_FAILURE,
+  GET_ASSIGNED_TASKS_REQUEST,
+  GET_ASSIGNED_TASKS_SUCCESS,
+  GET_ASSIGNED_TASKS_FAILURE,
 } from "./actionTypes";
 import axios from 'axios'
 
@@ -184,3 +190,48 @@ export const setSearchQuery = (query) => ({
   type: SET_SEARCH_QUERY,
   payload: query,
 });
+
+export const assignTask = (taskData) => async (dispatch) => {
+  dispatch({ type: ASSIGN_TASK_REQUEST });
+
+  try {
+    const response = await axios.post("http://localhost:5000/assignTask/", taskData, {
+      withCredentials: true,
+    });
+
+    dispatch({ type: ASSIGN_TASK_SUCCESS });
+    return "success";
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || "Something went wrong";
+
+    dispatch({
+      type: ASSIGN_TASK_FAILURE,
+      payload: errorMessage,
+    });
+
+    if (errorMessage === "Recipient user not found") {
+      return "Recipient user not found";
+    }
+
+    return "error";
+  }
+};
+
+export const getAssignedTasks = () => async (dispatch) => {
+  dispatch({ type: GET_ASSIGNED_TASKS_REQUEST });
+  try {
+    const response = await axios.get("http://localhost:5000/assignTask/", {
+      withCredentials: true,
+    });
+    // console.log(response.data)
+    dispatch({
+      type: GET_ASSIGNED_TASKS_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: GET_ASSIGNED_TASKS_FAILURE,
+      payload: error.response?.data?.message || "Failed to fetch tasks",
+    });
+  }
+};

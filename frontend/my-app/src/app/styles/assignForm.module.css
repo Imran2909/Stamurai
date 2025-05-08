@@ -1,0 +1,69 @@
+.assignForm {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .formGroup {
+    margin-bottom: 10px;
+  }
+  .formGroup1 {
+    margin-bottom: 10px;
+    width: 44%;
+  }
+  .firstBox{
+    display: flex;
+    justify-content: space-between;
+    gap: 30;
+  }
+  .formGroup label,
+  .formGroup1 label
+   {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .formGroup input,
+  .formGroup1 input,
+  .formGroup textarea,
+  .formGroup select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .formGroup textarea {
+    resize: vertical;
+  }
+  
+  .formRow {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .formRow .formGroup {
+    flex: 1;
+  }
+  
+  .assignButton {
+    background-color: #1890ff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    display: block;
+    margin: 29.5px auto 0;
+    width: 200px;
+  }
+  
+  .assignButton:hover {
+    background-color: #40a9ff;
+  }

@@ -5,6 +5,7 @@ const taskRouter = require("./routes/taskRoute")
 const cors = require("cors");
 const cookieParser = require("cookie-parser"); 
 const authMiddleware = require("./middleware/authMiddleware");
+const assignTaskRouter = require("./routes/assignTaskRouter");
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -24,6 +25,7 @@ app.use("/user", userRouter);
 app.use(authMiddleware)
 
 app.use("/task", taskRouter)
+app.use("/assignTask", assignTaskRouter )
 
 
 app.listen(5000, async (req, res) => {

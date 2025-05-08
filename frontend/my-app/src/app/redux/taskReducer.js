@@ -12,56 +12,6 @@ import {
   SET_DUE_DATE_FILTER,
 } from "./actionTypes";
 
-// const initialState = {
-//   loading: false,
-//   error: null,
-//   tasks: [],
-//   searchQuery: "",
-// };
-
-// const taskReducer = (state = initialState, action) => {
-//   switch (action.type) {
-//     case FETCH_TASKS_REQUEST:
-//       return { ...state, loading: true, error: null };
-//     case FETCH_TASKS_SUCCESS:
-//       return { ...state, loading: false, tasks: action.payload };
-//     case CREATE_TASK_SUCCESS:
-//       return {
-//         ...state,
-//         loading: false,
-//         tasks: [...state.tasks, action.payload],
-//       };
-//     case FETCH_TASKS_FAILURE:
-//       return { ...state, loading: false, error: action.payload };
-//     case DELETE_TASK_REQUEST:
-//       return { ...state, loading: true, error: null };
-//     case DELETE_TASK_SUCCESS:
-//       return {
-//         ...state,
-//         loading: false,
-//         tasks: state.tasks.filter((task) => task._id !== action.payload),
-//       };
-//     case DELETE_TASK_FAILURE:
-//       return { ...state, loading: false, error: action.payload };
-//     case SET_SEARCH_QUERY:
-//       return {
-//         ...state,
-//         searchQuery: action.payload.toLowerCase(),
-//       };
-//     default:
-//       return state;
-//   }
-// };
-
-// export default taskReducer;
-
-
-
-
-
-
-
-
 const initialState = {
   loading: false,
   error: null,

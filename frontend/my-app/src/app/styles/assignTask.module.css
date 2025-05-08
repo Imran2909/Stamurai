@@ -1,0 +1,76 @@
+.box {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .left {
+    width: 240px;
+    /* position: fixed; */
+    /* border: 1px solid red; */
+  }
+  
+  .right {
+    flex: 1;
+    padding: 10px;
+    height: 99vh;
+  }
+  
+  .mainContent {
+    background-color: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px
+  }
+  
+  .tabsContainer {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+    margin-right: 5px;
+    transition: all 0.3s ease;
+  }
+  
+  .tab:hover {
+    color: #333;
+  }
+  
+  .tab.active {
+    color: #1890ff;
+    border-bottom: 2px solid #1890ff;
+  }
+  
+  .badge {
+    display: inline-block;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    background-color: #ff4d4f;
+    color: white;
+    border-radius: 10px;
+    font-size: 12px;
+    text-align: center;
+    line-height: 20px;
+    margin-left: 6px;
+  }
+  
+  .tabPanel {
+    /* padding: 15px 0; */
+    /* border: 1px solid red; */
+  }
+  
+  .tabPanel h2 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+  }

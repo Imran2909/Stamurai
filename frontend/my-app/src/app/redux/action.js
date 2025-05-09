@@ -22,8 +22,13 @@ import {
   GET_ASSIGNED_TASKS_REQUEST,
   GET_ASSIGNED_TASKS_SUCCESS,
   GET_ASSIGNED_TASKS_FAILURE,
+  NEW_ASSIGN_TASK_RECEIVED,
+  UPDATE_TASK_STATUS,
+  RESPOND_TO_TASK_REQUEST,
+  INCREMENT_REQUEST_COUNT,
+  DECREMENT_REQUEST_COUNT
 } from "./actionTypes";
-import axios from 'axios'
+import axios from "axios";
 
 export const signupUser = (username, email, password) => async (dispatch) => {
   dispatch({ type: SIGNUP_REQUEST });
@@ -71,7 +76,7 @@ export const loginUser = (username, password) => async (dispatch) => {
     }
     console.log("data from acct", data.accessToken);
     dispatch({ type: LOGIN_SUCCESS, payload: data.accessToken });
-    return { success: true, message:"Login Successful" };
+    return { success: true, message: "Login Successful" };
   } catch (error) {
     dispatch({ type: LOGIN_FAILURE, payload: error.message });
     return { success: false, message: error.message };
@@ -81,14 +86,18 @@ export const loginUser = (username, password) => async (dispatch) => {
 export const logoutUser = () => async (dispatch) => {
   try {
     // 1. Clear server-side session
-    await axios.post('http://localhost:5000/user/logout', {}, { 
-      withCredentials: true 
-    });
+    await axios.post(
+      "http://localhost:5000/user/logout",
+      {},
+      {
+        withCredentials: true,
+      }
+    );
     // 2. Clear Redux state
     dispatch({ type: LOGOUT });
     return true;
   } catch (error) {
-    console.log('Logout failed:', error);
+    console.log("Logout failed:", error);
     return false;
   }
 };
@@ -98,15 +107,15 @@ export const fetchTasks = () => {
     dispatch({ type: FETCH_TASKS_REQUEST });
 
     try {
-      const response = await axios.get('http://localhost:5000/task/', {
-        withCredentials: true
+      const response = await axios.get("http://localhost:5000/task/", {
+        withCredentials: true,
       });
 
       dispatch({ type: FETCH_TASKS_SUCCESS, payload: response.data });
       // console.log(response.data)
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        dispatch({ type: FETCH_TASKS_FAILURE, payload: 'Unauthorized' });
+        dispatch({ type: FETCH_TASKS_FAILURE, payload: "Unauthorized" });
       } else {
         dispatch({ type: FETCH_TASKS_FAILURE, payload: error.message });
       }
@@ -118,9 +127,13 @@ export const createTask = (taskData) => async (dispatch) => {
   dispatch({ type: CREATE_TASK_REQUEST });
 
   try {
-    const response = await axios.post('http://localhost:5000/task/create', taskData, {
-      withCredentials: true,
-    });
+    const response = await axios.post(
+      "http://localhost:5000/task/create",
+      taskData,
+      {
+        withCredentials: true,
+      }
+    );
 
     dispatch({
       type: CREATE_TASK_SUCCESS,
@@ -128,22 +141,22 @@ export const createTask = (taskData) => async (dispatch) => {
     });
 
     // Return success flag and data
-    return { 
+    return {
       payload: response.data,
-      success: true 
+      success: true,
     };
   } catch (error) {
     const errorMessage = error.response?.data?.message || error.message;
-    
+
     dispatch({
       type: CREATE_TASK_FAILURE,
       payload: errorMessage,
     });
 
     // Return error information
-    return { 
+    return {
       success: false,
-      message: errorMessage 
+      message: errorMessage,
     };
   }
 };
@@ -153,17 +166,17 @@ export const deleteTask = (id, token) => async (dispatch) => {
 
   try {
     const res = await axios.delete(`http://localhost:5000/task/delete/${id}`, {
-     withCredentials: true,
+      withCredentials: true,
     });
 
     dispatch({ type: DELETE_TASK_SUCCESS, payload: id });
-    return 'deleted'
+    return "deleted";
   } catch (error) {
     dispatch({
       type: DELETE_TASK_FAILURE,
       payload: error.response?.data?.message || "Failed to delete task",
     });
-    return 'failed'
+    return "failed";
   }
 };
 
@@ -171,9 +184,13 @@ export const updateTask = (id, updatedData) => async (dispatch) => {
   dispatch({ type: FETCH_TASKS_REQUEST }); // optional: reuse for loader
 
   try {
-    const res = await axios.patch(`http://localhost:5000/task/update/${id}`, updatedData, {
-      withCredentials: true,
-    });
+    const res = await axios.patch(
+      `http://localhost:5000/task/update/${id}`,
+      updatedData,
+      {
+        withCredentials: true,
+      }
+    );
 
     dispatch(fetchTasks()); // Refresh task list
     return { payload: res.data.task };
@@ -192,38 +209,33 @@ export const setSearchQuery = (query) => ({
 });
 
 export const assignTask = (taskData) => async (dispatch) => {
-  dispatch({ type: ASSIGN_TASK_REQUEST });
-
+  console.log("Dispatching assignTask with:", taskData);
   try {
-    const response = await axios.post("http://localhost:5000/assignTask/", taskData, {
-      withCredentials: true,
-    });
-
-    dispatch({ type: ASSIGN_TASK_SUCCESS });
-    return "success";
-  } catch (error) {
-    const errorMessage = error.response?.data?.message || "Something went wrong";
-
-    dispatch({
-      type: ASSIGN_TASK_FAILURE,
-      payload: errorMessage,
-    });
-
-    if (errorMessage === "Recipient user not found") {
-      return "Recipient user not found";
+    const response = await axios.post('/assignTask', taskData);
+    console.log("Backend response:", response.data);
+    
+    if (response.data.task.assignStatus === "requested") {
+      console.log("This was a REQUEST (not direct assignment)");
     }
-
-    return "error";
+    
+    return response.data;
+  } catch (error) {
+    console.error("Full error details:", {
+      message: error.message,
+      response: error.response?.data,
+      stack: error.stack
+    });
+    throw error;
   }
 };
 
+// Fetch assigned tasks
 export const getAssignedTasks = () => async (dispatch) => {
   dispatch({ type: GET_ASSIGNED_TASKS_REQUEST });
   try {
     const response = await axios.get("http://localhost:5000/assignTask/", {
       withCredentials: true,
     });
-    // console.log(response.data)
     dispatch({
       type: GET_ASSIGNED_TASKS_SUCCESS,
       payload: response.data,
@@ -231,7 +243,41 @@ export const getAssignedTasks = () => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: GET_ASSIGNED_TASKS_FAILURE,
-      payload: error.response?.data?.message || "Failed to fetch tasks",
+      payload: error.message,
     });
+  }
+};
+
+// Handle new task received via socket
+export const newAssignedTaskReceived = (task) => (dispatch) => {
+  dispatch({
+    type: NEW_ASSIGN_TASK_RECEIVED,
+    payload: task
+  });
+
+  if (task.assignStatus === "requested") {
+    dispatch({ type: INCREMENT_REQUEST_COUNT });
+  }
+};
+
+// Update task status (used for socket updates)
+export const updateTaskStatus = (task) => ({
+  type: UPDATE_TASK_STATUS,
+  payload: task
+});
+
+// Respond to task request (accept/reject)
+export const respondToTaskRequest = (taskId, response) => async (dispatch) => {
+  dispatch({ type: RESPOND_TO_TASK_REQUEST });
+  try {
+    const res = await axios.post(
+      `http://localhost:5000/assignTask/${taskId}/respond`,
+      { response },
+      { withCredentials: true }
+    );
+    dispatch({ type: DECREMENT_REQUEST_COUNT });
+    return res.data;
+  } catch (error) {
+    return { error: error.response?.data?.message || "Failed to respond" };
   }
 };

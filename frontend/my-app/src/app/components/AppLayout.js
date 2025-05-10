@@ -8,7 +8,7 @@ export default function AppLayout({ children }) {
   return (
     <AppWrapper>
       <div className={styles.box}>
-        <div className={styles.left}>
+        <div className={styles.left}> 
           <Sidebar />
         </div>
         <div className={styles.right}>

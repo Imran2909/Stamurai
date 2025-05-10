@@ -26,7 +26,7 @@ import {
   UPDATE_TASK_STATUS,
   RESPOND_TO_TASK_REQUEST,
   INCREMENT_REQUEST_COUNT,
-  DECREMENT_REQUEST_COUNT
+  DECREMENT_REQUEST_COUNT,
 } from "./actionTypes";
 import axios from "axios";
 
@@ -74,8 +74,11 @@ export const loginUser = (username, password) => async (dispatch) => {
     if (!response.ok) {
       throw new Error(data.message || "Login failed");
     }
-    console.log("data from acct", data.accessToken);
-    dispatch({ type: LOGIN_SUCCESS, payload: data.accessToken });
+    console.log("data from acct", data.user.username);
+    dispatch({
+      type: LOGIN_SUCCESS,
+      payload: [data.accessToken, data.user.username],
+    });
     return { success: true, message: "Login Successful" };
   } catch (error) {
     dispatch({ type: LOGIN_FAILURE, payload: error.message });
@@ -211,19 +214,21 @@ export const setSearchQuery = (query) => ({
 export const assignTask = (taskData) => async (dispatch) => {
   console.log("Dispatching assignTask with:", taskData);
   try {
-    const response = await axios.post('/assignTask', taskData);
+    const response = await axios.post("http://localhost:5000/assignTask", taskData,{
+      withCredentials:true
+    });
     console.log("Backend response:", response.data);
-    
+
     if (response.data.task.assignStatus === "requested") {
       console.log("This was a REQUEST (not direct assignment)");
     }
-    
+
     return response.data;
   } catch (error) {
     console.error("Full error details:", {
       message: error.message,
       response: error.response?.data,
-      stack: error.stack
+      stack: error.stack,
     });
     throw error;
   }
@@ -252,7 +257,7 @@ export const getAssignedTasks = () => async (dispatch) => {
 export const newAssignedTaskReceived = (task) => (dispatch) => {
   dispatch({
     type: NEW_ASSIGN_TASK_RECEIVED,
-    payload: task
+    payload: task,
   });
 
   if (task.assignStatus === "requested") {
@@ -263,7 +268,7 @@ export const newAssignedTaskReceived = (task) => (dispatch) => {
 // Update task status (used for socket updates)
 export const updateTaskStatus = (task) => ({
   type: UPDATE_TASK_STATUS,
-  payload: task
+  payload: task,
 });
 
 // Respond to task request (accept/reject)

@@ -15,6 +15,7 @@ const initialState = {
   isError: false,
   data: [],
   signupSuccess: false,
+  username:null
 };
 
 export const userReducer = (state = initialState, action) => {
@@ -35,8 +36,9 @@ export const userReducer = (state = initialState, action) => {
       return {
         ...state,
         isLoading: false,
-        token: action.payload,
+        token: action.payload[0],
         isError: null,
+        username:action.payload[1]
       };
     case SIGNUP_SUCCESS:
       return {

@@ -172,7 +172,7 @@ assignTaskRouter.post("/", async (req, res) => {
       status,
       frequency,
       sendTo, // username
-    } = req.body;
+    } = req.body; 
 
     const sentBy = req.userId;
 

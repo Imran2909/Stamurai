@@ -1,67 +1,38 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import socket from "../utils/socket";
-import { newAssignedTaskReceived, updateTaskStatus } from "../redux/action";
-import TaskRequestModal from "../components/taskRequestModal/page";
+import { useEffect } from "react";
+import { io } from "socket.io-client";
+
+// 🔄 Persistent socket instance
+const socket = io("http://localhost:5000", {
+  autoConnect: false,
+  withCredentials: true,
+});
 
 const AppWrapper = ({ children }) => {
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
-  const [requestModal, setRequestModal] = useState({
-    visible: false,
-    task: null,
-    from: "",
-  });
+  useEffect(() => {
+    socket.connect();
 
-useEffect(() => {
-  if (user?._id) {
-    console.log("Initializing socket for user:", user._id);
-    
-    socket.on("taskRequest", (data) => {
-      console.log("RECEIVED TASK REQUEST DATA:", data);
-      console.log("Should show modal?", data.requiresAction);
-      setRequestModal({
-        visible: true,
-        task: data.task,
-        from: data.from,
-        message: data.message
-      });
+    socket.on("connect", () => {
+      console.log("✅ [CLIENT] You have joined");
     });
 
-    socket.on("taskAssigned", (data) => {
-      console.log("RECEIVED DIRECT ASSIGNMENT:", data);
-      dispatch(newAssignedTaskReceived(data.task));
+    socket.on("new_user_joined", () => {
+      console.log("🎉 [CLIENT] New user joined");
     });
 
-    socket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err);
+    socket.on("disconnect", () => {
+      console.log("❌ [CLIENT] Disconnected");
     });
-  }
-}, [user]);
 
-  const handleRequestResponse = (response) => {
-    socket.emit("respondToTaskRequest", {
-      taskId: requestModal.task._id,
-      response,
-      userId: user._id,
-    });
-    setRequestModal({ ...requestModal, visible: false });
-  };
+    return () => {
+      socket.off("connect");
+      socket.off("new_user_joined");
+      socket.off("disconnect");
+      socket.disconnect();
+    };
+  }, []);
 
-  return (
-    <>
-      {children}
-      <TaskRequestModal
-        visible={requestModal.visible}
-        from={requestModal.from}
-        message={requestModal.message}
-        onAccept={() => handleRequestResponse("accept")}
-        onReject={() => handleRequestResponse("reject")}
-        onClose={() => setRequestModal({ ...requestModal, visible: false })}
-      />
-    </>
-  );
+  return <>{children}</>;
 };
 
 export default AppWrapper;

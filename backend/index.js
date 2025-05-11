@@ -46,7 +46,7 @@ app.use(authMiddleware);
 app.use("/task", taskRouter);
 app.use("/assignTask", assignTaskRouter);
 
-const connectedUsers = new Map()
+const connectedUsers = new Map();
 
 io.on("connection", (socket) => {
   console.log("✅ [SERVER] A user connected");
@@ -54,20 +54,20 @@ io.on("connection", (socket) => {
   socket.on("join", (username) => {
     socket.join(username);
     console.log(`👥 [SERVER] ${username} joined their personal room`);
+
+    // ✅ Notify all users including the one who joined
+    io.emit("new_user_joined", { username });
   });
 
-   socket.broadcast.emit("new_user_joined");
-
-  socket.on("task-assign", ({ to, message }) => {
+  socket.on("task-assign", ({ from, to, status }) => {
     console.log(`📤 [SERVER] Sending task to ${to}`);
-    io.to(to).emit("task-assign", { message });
+    io.to(to).emit("task-assign", { from, status });
   });
 
   socket.on("disconnect", () => {
     console.log("❌ [SERVER] User disconnected");
   });
-}); 
-
+});
 
 server.listen(5000, async () => {
   try {

@@ -32,30 +32,6 @@ const AssignForm = () => {
     }));
   };
 
-  //   const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log("✉️ Form submitted with data:", formData);
-  //     if(User == formData.username ){
-  //       messageApi.error("You cannot assign task to yourself")
-  //       return
-  //     }
-  //   try {
-  //     const result = await dispatch(assignTask(formData));
-  //     console.log("Dispatch result:", result);
-
-  //     if (result?.error) {
-  //       console.log("❌ Assignment error:", result.error);
-  //       messageApi.error(result.error);
-  //     } else if (result?.task) {
-  //       console.log("✅ Assignment result:", result.message);
-  //       messageApi.success(result.message);
-  //     }
-  //   } catch (error) {
-  //     console.log("🔥 Form submission error:", error);
-  //     messageApi.error("Failed to assign task");
-  //   }
-  // };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("✉️ Form submitted with data:", formData);
@@ -78,14 +54,12 @@ const AssignForm = () => {
 
         // ✅ Emit socket event for task assignment
         socket.emit("task-assign", {
+          from: User ,
           to: formData.sendTo,
-          message: result.message,
+          status: result.status,
         });
 
-        // Listen for task assignments
-        socket.on("task-assign", (data) => {
-          console.log("AF 📥 New task assigned to you:", data);
-        });
+       
 
       }
     } catch (error) {

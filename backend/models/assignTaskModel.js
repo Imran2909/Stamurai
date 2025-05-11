@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const assignTaskSchema = mongoose.Schema({
   title: { type: String, required: true },
-  description: { type: String },
+  description: { type: String }, 
   dueDate: { type: Date },
   dueTime: { type: String }, // stored as HH:mm format
   priority: {
@@ -32,7 +32,7 @@ const assignTaskSchema = mongoose.Schema({
   },
   assignStatus: {
     type: String,
-    enum: ["requested", "accepted", "rejected"],
+    enum: ["requested", "assigned", "rejected"],
     default: "once",
   },
   logs: { type: Array, default: [] },

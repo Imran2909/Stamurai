@@ -4,7 +4,6 @@ const { Server } = require("socket.io");
 const { connection } = require("./database/db");
 const userRouter = require("./routes/userRoute");
 const taskRouter = require("./routes/taskRoute");
-const assignTaskRouter = require("./routes/assignTaskRouter");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const authMiddleware = require("./middleware/authMiddleware");
@@ -13,10 +12,12 @@ const app = express();
 const server = http.createServer(app);
 
 // Allow CORS
-app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -27,13 +28,6 @@ app.get("/", (req, res) => {
 
 app.use("/user", userRouter);
 
-// ⬇️ Protect routes
-app.use(authMiddleware);
-
-// Routes
-app.use("/task", taskRouter);
-app.use("/assignTask", assignTaskRouter);
-
 // 🔌 Setup Socket.IO server
 const io = new Server(server, {
   cors: {
@@ -42,15 +36,37 @@ const io = new Server(server, {
   },
 });
 
-io.on("connection", (socket) => {
-  console.log("✅ [SERVER] You have joined");
+// Pass io into router
+const assignTaskRouter = require("./routes/assignTaskRouter")(io);
 
-  socket.broadcast.emit("new_user_joined");
+// ⬇️ Protect routes
+app.use(authMiddleware);
+
+// Routes
+app.use("/task", taskRouter);
+app.use("/assignTask", assignTaskRouter);
+
+const connectedUsers = new Map()
+
+io.on("connection", (socket) => {
+  console.log("✅ [SERVER] A user connected");
+
+  socket.on("join", (username) => {
+    socket.join(username);
+    console.log(`👥 [SERVER] ${username} joined their personal room`);
+  });
+
+   socket.broadcast.emit("new_user_joined");
+
+  socket.on("task-assign", ({ to, message }) => {
+    console.log(`📤 [SERVER] Sending task to ${to}`);
+    io.to(to).emit("task-assign", { message });
+  });
 
   socket.on("disconnect", () => {
     console.log("❌ [SERVER] User disconnected");
   });
-});
+}); 
 
 
 server.listen(5000, async () => {

@@ -1,14 +1,13 @@
-
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "../../styles/assignForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { assignTask } from "../../redux/action";
 import { message } from "antd";
-import socket from "../../utils/socket";
+import socket from "../../socket/socket";
 
 const AssignForm = () => {
-  const User = useSelector((store)=>store.user.username)
+  const User = useSelector((store) => store.user.username);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -23,9 +22,7 @@ const AssignForm = () => {
   const dispatch = useDispatch();
   const [messageApi, contextHolder] = message.useMessage();
 
-  useEffect(() => {
-   
-  }, []);
+  useEffect(() => {}, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -35,29 +32,68 @@ const AssignForm = () => {
     }));
   };
 
+  //   const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   console.log("✉️ Form submitted with data:", formData);
+  //     if(User == formData.username ){
+  //       messageApi.error("You cannot assign task to yourself")
+  //       return
+  //     }
+  //   try {
+  //     const result = await dispatch(assignTask(formData));
+  //     console.log("Dispatch result:", result);
+
+  //     if (result?.error) {
+  //       console.log("❌ Assignment error:", result.error);
+  //       messageApi.error(result.error);
+  //     } else if (result?.task) {
+  //       console.log("✅ Assignment result:", result.message);
+  //       messageApi.success(result.message);
+  //     }
+  //   } catch (error) {
+  //     console.log("🔥 Form submission error:", error);
+  //     messageApi.error("Failed to assign task");
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  console.log("✉️ Form submitted with data:", formData);
-    if(User == formData.username ){
-      messageApi.error("You cannot assign task to yourself")
-      return
+    e.preventDefault();
+    console.log("✉️ Form submitted with data:", formData);
+
+    if (User === formData.sendTo) {
+      messageApi.error("You cannot assign task to yourself");
+      return;
     }
-  try {
-    const result = await dispatch(assignTask(formData));
-    console.log("Dispatch result:", result);
-    
-    if (result?.error) {
-      console.log("❌ Assignment error:", result.error);
-      messageApi.error(result.error);
-    } else if (result?.task) {
-      console.log("✅ Assignment result:", result.message);
-      messageApi.success(result.message);
+
+    try {
+      const result = await dispatch(assignTask(formData));
+      console.log("Dispatch result:", result);
+
+      if (result?.error) {
+        console.log("❌ Assignment error:", result.error);
+        messageApi.error(result.error);
+      } else if (result?.task) {
+        console.log("✅ Assignment result:", result.message);
+        messageApi.success(result.message);
+
+        // ✅ Emit socket event for task assignment
+        socket.emit("task-assign", {
+          to: formData.sendTo,
+          message: result.message,
+        });
+
+        // Listen for task assignments
+        socket.on("task-assign", (data) => {
+          console.log("AF 📥 New task assigned to you:", data);
+        });
+
+      }
+    } catch (error) {
+      console.log("🔥 Form submission error:", error);
+      messageApi.error("Failed to assign task");
     }
-  } catch (error) {
-    console.log("🔥 Form submission error:", error);
-    messageApi.error("Failed to assign task");
-  }
-};
+  };
+
   return (
     <>
       {contextHolder}
@@ -97,7 +133,7 @@ const AssignForm = () => {
             value={formData.description}
             onChange={handleChange}
             rows="4"
-            required
+            // required
           />
         </div>
 
@@ -110,7 +146,7 @@ const AssignForm = () => {
               name="dueDate"
               value={formData.dueDate}
               onChange={handleChange}
-              required
+              // required
             />
           </div>
 
@@ -122,7 +158,7 @@ const AssignForm = () => {
               name="dueTime"
               value={formData.dueTime}
               onChange={handleChange}
-              required
+              // required
             />
           </div>
         </div>
@@ -183,3 +219,15 @@ const AssignForm = () => {
 };
 
 export default AssignForm;
+
+
+
+
+
+
+
+
+
+
+
+

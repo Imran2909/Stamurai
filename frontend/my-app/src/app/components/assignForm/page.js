@@ -57,9 +57,8 @@ const AssignForm = () => {
           from: User ,
           to: formData.sendTo,
           status: result.status,
+          id:result.task._id
         });
-
-       
 
       }
     } catch (error) {

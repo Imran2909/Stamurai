@@ -27,6 +27,7 @@ import {
   RESPOND_TO_TASK_REQUEST,
   INCREMENT_REQUEST_COUNT,
   DECREMENT_REQUEST_COUNT,
+  TASK_ASSIGNED,
 } from "./actionTypes";
 import axios from "axios";
 
@@ -222,10 +223,11 @@ export const assignTask = (taskData) => async (dispatch) => {
     if (response.data.task.assignStatus === "requested") {
       console.log("This was a REQUEST (not direct assignment)");
     }
-
+    console.log("Task id is", response.data.task._id)
+    dispatch({type:TASK_ASSIGNED,payload:response.data.task._id})
     return response.data;
   } catch (error) {
-    console.error("Full error details:", {
+    console.log("Full error details:", {
       message: error.message,
       response: error.response?.data,
       stack: error.stack,

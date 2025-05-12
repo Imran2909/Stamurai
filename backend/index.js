@@ -59,10 +59,11 @@ io.on("connection", (socket) => {
     io.emit("new_user_joined", { username });
   });
 
-  socket.on("task-assign", ({ from, to, status }) => {
-    console.log(`📤 [SERVER] Sending task to ${to}`);
-    io.to(to).emit("task-assign", { from, status });
+  socket.on("task-assign", ({ from, to, status,id }) => {
+    console.log(`📤 [SERVER] Sending task to ${to} ${id}`);
+    io.to(to).emit("task-assign", { from,to, status,id });
   });
+
 
   socket.on("disconnect", () => {
     console.log("❌ [SERVER] User disconnected");

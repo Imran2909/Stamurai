@@ -9,7 +9,8 @@ import {
   UPDATE_TASK_STATUS,
   RESPOND_TO_TASK_REQUEST,
   INCREMENT_REQUEST_COUNT,
-  DECREMENT_REQUEST_COUNT
+  DECREMENT_REQUEST_COUNT,
+  TASK_ASSIGNED
 } from "./actionTypes";
 
 const initialState = {
@@ -21,6 +22,7 @@ const initialState = {
     requests: []
   },
   assignRequests: 0,
+  id:null
 };
 
 const assignTaskReducer = (state = initialState, action) => {
@@ -95,6 +97,9 @@ const assignTaskReducer = (state = initialState, action) => {
     case ASSIGN_TASK_FAILURE:
     case GET_ASSIGNED_TASKS_FAILURE:
       return { ...state, loading: false, error: action.payload };
+
+    case TASK_ASSIGNED:
+      return { ...state, id: action.payload }
 
     default:
       return state;

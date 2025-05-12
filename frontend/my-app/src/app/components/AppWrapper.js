@@ -9,19 +9,21 @@ const AppWrapper = ({ children }) => {
   const [messageApi, contextHolder] = message.useMessage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requestInfo, setRequestInfo] = useState(null);
+  const [info, setInfo] = useState({});
 
   const handleOk = () => {
     setIsModalOpen(false);
     // Emit "accept-task" event to server (if needed)
-    socket.emit("accept-task", { from: requestInfo.from });
+    socket.emit("accept-task", info);
   };
 
   const handleCancel = () => {
     setIsModalOpen(false);
     // Emit "reject-task" event to server (if needed)
-    socket.emit("reject-task", { from: requestInfo.from });
+    console.log("reject-taskkkkkkkkkkkkkkkkk");
+    socket.emit("reject-task", info);
   };
-  
+
   useEffect(() => {
     if (!username) return;
 
@@ -45,21 +47,33 @@ const AppWrapper = ({ children }) => {
     });
 
     socket.on("task-assign", (data) => {
+      //from, to, status, data
       if (data.status === "assigned") {
+        setInfo(data);
         messageApi.success("✅ A task has been assigned to you!");
       }
       if (data.status === "requested") {
-         console.log("📩 Task request received:", data);
+        setInfo(data);
+        console.log("📩 Task request received:", data);
         setRequestInfo(data); // Save info for modal
         setIsModalOpen(true); // Show modal
       }
     });
 
+    socket.on("taskRequestSuccess", (data) => {
+      messageApi.success(data.message);
+    });
+
+    socket.on("taskRequestReject", (data) => {
+      messageApi.error(data.message);
+    });
+    
     return () => {
       socket.off("connect");
       socket.off("disconnect");
       socket.off("task-assign");
       socket.off("new_user_joined");
+      socket.off("taskRequestReject");
       socket.disconnect();
     };
   }, [username]);
@@ -68,7 +82,7 @@ const AppWrapper = ({ children }) => {
     <>
       {contextHolder}
       {children}
-       <Modal
+      <Modal
         title="Task Assignment Request"
         open={isModalOpen}
         onOk={handleOk}

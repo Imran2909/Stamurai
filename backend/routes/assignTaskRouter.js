@@ -1,11 +1,131 @@
-
-
 const express = require("express");
 const assignTaskModel = require("../models/assignTaskModel");
 const userModel = require("../models/userModel");
 
 module.exports = function (io) {
   const assignTaskRouter = express.Router();
+
+  // Socket.IO logic
+  io.on("connection", (socket) => {
+    socket.on("join", (username) => {
+      socket.join(username);
+      console.log(`👥 User ${username} joined their room`);
+      // socket.broadcast.emit("new_user_joined", { username });
+    });
+
+    socket.on("accept-task", async (info) => {
+      try {
+        const { id: taskId, from, to, status } = info;
+        const task = await assignTaskModel
+          .findById(taskId)
+          .populate("sentBy", "username")
+          .populate("sendTo", "username");
+
+        if (!task) {
+          return socket.emit("error", { message: "Task not found" });
+        }
+
+        if (task.assignStatus !== "requested") {
+          return socket.emit("error", {
+            message: "Task is not in requested state",
+          });
+        }
+
+        // Update 'from' user's collaborator list to include 'to'
+        const sender = await userModel.findOne({ username: from });
+        const receiver = await userModel.findOne({ username: to });
+
+        if (!sender || !receiver) {
+          return socket.emit("error", {
+            message: "Sender or receiver not found",
+          });
+        }
+
+        // Add receiver's username to sender's collaborators
+        if (!sender.collaborator.includes(receiver.username)) {
+          sender.collaborator.push(receiver.username);
+          await sender.save();
+        }
+
+        // Update task status
+        task.assignStatus = "assigned";
+        task.logs.push({
+          action: "Task accepted",
+          date: new Date(),
+          by: receiver._id,
+        });
+        await task.save();
+
+        // Notify both users
+        io.to(from).emit("taskRequestSuccess", {
+          accepted: true,
+          message: `${to} accepted your task request`,
+          task,
+        });
+
+        console.log(`✅ Task ${taskId} accepted by ${to}`);
+      } catch (err) {
+        console.error("Socket accept-task error:", err);
+        socket.emit("error", { message: "Internal server error" });
+      }
+    });
+
+    socket.on("reject-task", async (info) => {
+      try {
+        const { id: taskId, from, to, status } = info;
+        const task = await assignTaskModel
+          .findById(taskId)
+          .populate("sentBy", "username")
+          .populate("sendTo", "username");
+
+        if (!task) {
+          return socket.emit("error", { message: "Task not found" });
+        }
+
+        if (task.assignStatus !== "requested") {
+          return socket.emit("error", {
+            message: "Task is not in requested state",
+          });
+        }
+
+        // Update 'from' user's collaborator list to include 'to'
+        const sender = await userModel.findOne({ username: from });
+        const receiver = await userModel.findOne({ username: to });
+
+        if (!sender || !receiver) {
+          return socket.emit("error", {
+            message: "Sender or receiver not found",
+          });
+        }
+
+        // Update task status
+        task.assignStatus = "rejected";
+        task.logs.push({
+          action: "Task Rejected",
+          date: new Date(),
+          by: receiver._id,
+        });
+        await task.save();
+
+        // Notify both users
+        console.log("rejected task");
+        io.to(from).emit("taskRequestReject", {
+          accepted: false,
+          message: `${to} rejected your task request`,
+          task,
+        });
+
+        console.log(`✅ Task ${taskId} rejected by ${to}`);
+      } catch (err) {
+        console.error("Socket accept-task error:", err);
+        socket.emit("error", { message: "Internal server error" });
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("🧩 [Router] Socket disconnected");
+    });
+  });
 
   assignTaskRouter.get("/", async (req, res) => {
     try {
@@ -82,8 +202,6 @@ module.exports = function (io) {
 
       await newTask.save();
 
-    
-
       res.status(201).json({
         message: `Task ${newTask.assignStatus} to ${receiverUser.username}`,
         status: newTask.assignStatus,
@@ -122,7 +240,11 @@ module.exports = function (io) {
         });
 
         task.assignStatus = "assigned";
-        task.logs.push({ action: "Task accepted", date: new Date(), by: userId });
+        task.logs.push({
+          action: "Task accepted",
+          date: new Date(),
+          by: userId,
+        });
         await task.save();
 
         io.to(task.sentBy.username).emit("taskRequestResponse", {
@@ -139,7 +261,11 @@ module.exports = function (io) {
         return res.status(200).json({ message: "Task request accepted", task });
       } else {
         task.assignStatus = "rejected";
-        task.logs.push({ action: "Task rejected", date: new Date(), by: userId });
+        task.logs.push({
+          action: "Task rejected",
+          date: new Date(),
+          by: userId,
+        });
         await task.save();
 
         io.to(task.sentBy.username).emit("taskRequestResponse", {

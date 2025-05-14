@@ -67,7 +67,24 @@ const AppWrapper = ({ children }) => {
     socket.on("taskRequestReject", (data) => {
       messageApi.error(data.message);
     });
-    
+
+    socket.on("Delete-task", (data) => {
+      if (data.sendBy == username) {
+        messageApi.warning(
+          `${data.deletedTask.title} task is deleted by ${data.user.username}`
+        );
+      }
+    });
+
+    socket.on("Update-task", (data) => {
+      //task.title, user.username
+      if (data.sendBy == username) {
+        messageApi.warning(
+          ` ${data.task.title} task is updated by ${data.user.username}`
+        );
+      }
+    });
+
     return () => {
       socket.off("connect");
       socket.off("disconnect");

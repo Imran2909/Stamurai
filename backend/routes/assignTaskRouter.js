@@ -5,6 +5,12 @@ const userModel = require("../models/userModel");
 module.exports = function (io) {
   const assignTaskRouter = express.Router();
 
+  const createLog = (action, userId) => ({
+    action,
+    user: userId,
+    timestamp: new Date(),
+  });
+
   // Socket.IO logic
   io.on("connection", (socket) => {
     socket.on("join", (username) => {
@@ -213,72 +219,67 @@ module.exports = function (io) {
     }
   });
 
-  assignTaskRouter.post("/:id/respond", async (req, res) => {
+  // PUT /assignTask/edit/:id
+  assignTaskRouter.put("/edit/:id", async (req, res) => {
     try {
-      const { response } = req.body;
-      const userId = req.userId;
       const taskId = req.params.id;
+      const userId = req.userId;
+      const user = await userModel.findById(userId);
 
-      const task = await assignTaskModel
-        .findById(taskId)
-        .populate("sentBy", "username")
-        .populate("sendTo", "username");
+      const updates = req.body; // e.g., title, description, dueDate, priority, etc.
 
-      if (!task) return res.status(404).json({ message: "Task not found" });
-
-      if (!task.sendTo._id.equals(userId))
-        return res.status(403).json({ message: "Not authorized to respond" });
-
-      if (task.assignStatus !== "requested")
-        return res
-          .status(400)
-          .json({ message: "Task is not in requested state" });
-
-      if (response === "accept") {
-        await userModel.findByIdAndUpdate(task.sentBy._id, {
-          $addToSet: { collaborator: task.sendTo.username },
-        });
-
-        task.assignStatus = "assigned";
-        task.logs.push({
-          action: "Task accepted",
-          date: new Date(),
-          by: userId,
-        });
-        await task.save();
-
-        io.to(task.sentBy.username).emit("taskRequestResponse", {
-          accepted: true,
-          message: `${task.sendTo.username} accepted your task request`,
-          task,
-        });
-
-        io.to(task.sendTo.username).emit("taskAssigned", {
-          message: `You accepted task from ${task.sentBy.username}`,
-          task,
-        });
-
-        return res.status(200).json({ message: "Task request accepted", task });
-      } else {
-        task.assignStatus = "rejected";
-        task.logs.push({
-          action: "Task rejected",
-          date: new Date(),
-          by: userId,
-        });
-        await task.save();
-
-        io.to(task.sentBy.username).emit("taskRequestResponse", {
-          accepted: false,
-          message: `${task.sendTo.username} rejected your task request`,
-          task,
-        });
-
-        return res.status(200).json({ message: "Task request rejected", task });
+      const task = await assignTaskModel.findById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: "Assigned task not found" });
       }
+
+      // Update fields
+      Object.assign(task, updates);
+      const sendBy = await userModel.findById(task.sentBy);
+
+      // Log the edit
+      task.logs.push(createLog("edited", userId));
+      io.emit("Update-task", { task, user, sendBy:sendBy.username });
+      await task.save();
+      res.status(200).json({ message: "Assigned task updated", task });
     } catch (error) {
-      console.log("Error responding to task:", error);
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({
+        message: "Failed to update assigned task",
+        error: error.message,
+      });
+    }
+  });
+
+  // DELETE /assignTask/delete/:id
+  assignTaskRouter.delete("/delete/:id", async (req, res) => {
+    try {
+      const userId = req.userId;
+      const user = await userModel.findById(userId);
+      const taskId = req.params.id;
+      const deletedTask = await assignTaskModel.findByIdAndUpdate(
+        taskId,
+        {
+          $push: {
+            logs: createLog("deleted", userId),
+          },
+          assignStatus: "deleted",
+        },
+        { new: true }
+      );
+      if (!deletedTask) {
+        return res.status(404).json({ message: "Assigned task not found" });
+      }
+      const sendBy = await userModel.findById(deletedTask.sentBy);
+      io.emit("Delete-task", { deletedTask, user, sendBy: sendBy.username });
+
+      res
+        .status(200)
+        .json({ message: "Assigned task soft-deleted", task: deletedTask });
+    } catch (error) {
+      res.status(500).json({
+        message: "Failed to delete assigned task",
+        error: error.message,
+      });
     }
   });
 

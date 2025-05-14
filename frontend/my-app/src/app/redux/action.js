@@ -16,9 +16,6 @@ import {
   DELETE_TASK_SUCCESS,
   DELETE_TASK_FAILURE,
   SET_SEARCH_QUERY,
-  ASSIGN_TASK_REQUEST,
-  ASSIGN_TASK_SUCCESS,
-  ASSIGN_TASK_FAILURE,
   GET_ASSIGNED_TASKS_REQUEST,
   GET_ASSIGNED_TASKS_SUCCESS,
   GET_ASSIGNED_TASKS_FAILURE,
@@ -28,6 +25,12 @@ import {
   INCREMENT_REQUEST_COUNT,
   DECREMENT_REQUEST_COUNT,
   TASK_ASSIGNED,
+  DELETE_ASSIGNED_TASK_REQUEST,
+  DELETE_ASSIGNED_TASK_SUCCESS,
+  DELETE_ASSIGNED_TASK_FAILURE,
+  EDIT_ASSIGNED_TASK_REQUEST,
+  EDIT_ASSIGNED_TASK_SUCCESS,
+  EDIT_ASSIGNED_TASK_FAILURE,
 } from "./actionTypes";
 import axios from "axios";
 
@@ -243,6 +246,7 @@ export const getAssignedTasks = () => async (dispatch) => {
     const response = await axios.get("http://localhost:5000/assignTask/", {
       withCredentials: true,
     });
+    console.log(response)
     dispatch({
       type: GET_ASSIGNED_TASKS_SUCCESS,
       payload: response.data,
@@ -288,3 +292,46 @@ export const respondToTaskRequest = (taskId, response) => async (dispatch) => {
     return { error: error.response?.data?.message || "Failed to respond" };
   }
 };
+
+// PUT: Edit an assigned task
+export const editAssignedTask = (taskId, updates) => async (dispatch) => {
+  dispatch({ type: EDIT_ASSIGNED_TASK_REQUEST });
+  try {
+    const response = await axios.put(
+      `http://localhost:5000/assignTask/edit/${taskId}`,
+      updates,
+      { withCredentials: true }
+    );
+    dispatch({
+      type: EDIT_ASSIGNED_TASK_SUCCESS,
+      payload: response.data.task,
+    });
+  } catch (error) {
+    dispatch({
+      type: EDIT_ASSIGNED_TASK_FAILURE,
+      payload: error.message,
+    });
+  }
+};
+
+// DELETE: Soft-delete an assigned task
+export const deleteAssignedTask = (taskId) => async (dispatch) => {
+  dispatch({ type: DELETE_ASSIGNED_TASK_REQUEST });
+  try {
+    console.log(taskId)
+    const response = await axios.delete(
+      `http://localhost:5000/assignTask/delete/${taskId}`,
+      { withCredentials: true }
+    );
+    dispatch({
+      type: DELETE_ASSIGNED_TASK_SUCCESS,
+      payload: response.data.task,
+    });
+  } catch (error) {
+    dispatch({
+      type: DELETE_ASSIGNED_TASK_FAILURE,
+      payload: error.message,
+    });
+  }
+};
+

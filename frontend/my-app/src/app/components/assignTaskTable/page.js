@@ -1,16 +1,38 @@
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAssignedTasks, respondToTaskRequest } from "../../redux/action";
+import {
+  getAssignedTasks,
+  deleteAssignedTask,
+  editAssignedTask,
+} from "../../redux/action";
+import {
+  Modal,
+  Input,
+  Select,
+  DatePicker,
+  TimePicker,
+  Button,
+  message,
+} from "antd";
+import dayjs from "dayjs";
 import styles from "../../styles/assignTable.module.css";
 
-const AssignTaskTable = ({ showOnly, title }) => {
+const { Option } = Select;
+
+const AssignTaskTable = ({ showOnly }) => {
   const dispatch = useDispatch();
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [sortByDueDate, setSortByDueDate] = useState("asc");
+
+  const [deleteModal, setDeleteModal] = useState({
+    visible: false,
+    taskId: null,
+  });
+  const [editModal, setEditModal] = useState({ visible: false, task: null });
+
   const { assignedTasks: assignData = {}, loading } = useSelector(
     (state) => state.assignTask
   );
@@ -23,6 +45,7 @@ const AssignTaskTable = ({ showOnly, title }) => {
   }, [dispatch]);
 
   const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
+    .filter((task) => task.assignStatus === "assigned")
     .filter(
       (task) =>
         task.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -40,43 +63,71 @@ const AssignTaskTable = ({ showOnly, title }) => {
       return sortByDueDate === "asc" ? dateA - dateB : dateB - dateA;
     });
 
+  const handleDelete = () => {
+    dispatch(deleteAssignedTask(deleteModal.taskId)).then(() => {
+      message.success("Task deleted");
+      setDeleteModal({ visible: false, taskId: null });
+    });
+  };
+
+  const handleEditSubmit = () => {
+    const updated = { ...editModal.task };
+    if (!updated.title || !updated.description) {
+      return message.error("Title and description are required");
+    }
+
+    dispatch(editAssignedTask(updated._id, updated)).then(() => {
+      message.success("Task updated");
+      setEditModal({ visible: false, task: null });
+    });
+  };
+
+  const handleEditChange = (field, value) => {
+    setEditModal((prev) => ({
+      ...prev,
+      task: {
+        ...prev.task,
+        [field]: value,
+      },
+    }));
+  };
+
   return (
     <div className={styles.tableWrapper}>
       <div className={styles.controls}>
-        <input
-          type="text"
-          placeholder="Search by title or description..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className={styles.search} >
+          <Input
+            placeholder="Search by title or description..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className={styles.selects} >
+          <Select value={filterStatus} onChange={(val) => setFilterStatus(val)}>
+            <Option value="all">All Status</Option>
+            <Option value="pending">Pending</Option>
+            <Option value="in progress">In Progress</Option>
+            <Option value="completed">Completed</Option>
+          </Select>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-        >
-          <option value="all">All Status</option>
-          <option value="pending">Pending</option>
-          <option value="in progress">In Progress</option>
-          <option value="completed">Completed</option>
-        </select>
+          <Select
+            value={filterPriority}
+            onChange={(val) => setFilterPriority(val)}
+          >
+            <Option value="all">All Priorities</Option>
+            <Option value="low">Low</Option>
+            <Option value="medium">Medium</Option>
+            <Option value="high">High</Option>
+          </Select>
 
-        <select
-          value={filterPriority}
-          onChange={(e) => setFilterPriority(e.target.value)}
-        >
-          <option value="all">All Priorities</option>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-
-        <select
-          value={sortByDueDate}
-          onChange={(e) => setSortByDueDate(e.target.value)}
-        >
-          <option value="asc">Due Date ↑</option>
-          <option value="desc">Due Date ↓</option>
-        </select>
+          <Select
+            value={sortByDueDate}
+            onChange={(val) => setSortByDueDate(val)}
+          >
+            <Option value="asc">Due Date ↑</Option>
+            <Option value="desc">Due Date ↓</Option>
+          </Select>
+        </div>
       </div>
 
       {loading ? (
@@ -110,30 +161,114 @@ const AssignTaskTable = ({ showOnly, title }) => {
                 <td>{task.status}</td>
                 <td>{task.frequency}</td>
                 <td>
-                  {/* Placeholder for future edit/delete buttons */}
-                  <button className={styles.actionBtn}>Edit</button>
-                  <button className={styles.actionBtn}>Delete</button>
+                  <Button className={styles.actionBtn}
+                    onClick={() =>
+                      setEditModal({ visible: true, task: { ...task } })
+                    }
+                  >
+                    ✏️
+                  </Button>
+                  <Button className={styles.actionBtn}
+                    danger
+                    onClick={() =>
+                      setDeleteModal({ visible: true, taskId: task._id })
+                    }
+                  >
+                    🗑️
+                  </Button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       )}
+
+      {/* Delete Modal */}
+      <Modal
+        title="Confirm Delete"
+        open={deleteModal.visible}
+        onOk={handleDelete}
+        onCancel={() => setDeleteModal({ visible: false, taskId: null })}
+        okText="Yes"
+        cancelText="No"
+      >
+        <p>Are you sure you want to delete this task?</p>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal
+        title="Edit Task"
+        open={editModal.visible}
+        onOk={handleEditSubmit}
+        onCancel={() => setEditModal({ visible: false, task: null })}
+        okText="Update"
+      >
+        {editModal.task && (
+          <>
+            <Input
+              placeholder="Title"
+              value={editModal.task.title}
+              onChange={(e) => handleEditChange("title", e.target.value)}
+              style={{ marginBottom: 8 }}
+            />
+            <Input.TextArea
+              placeholder="Description"
+              value={editModal.task.description}
+              onChange={(e) => handleEditChange("description", e.target.value)}
+              rows={3}
+              style={{ marginBottom: 8 }}
+            />
+            <DatePicker
+              value={dayjs(editModal.task.dueDate)}
+              onChange={(date) =>
+                handleEditChange("dueDate", date.toISOString())
+              }
+              style={{ width: "100%", marginBottom: 8 }}
+            />
+            <TimePicker
+              value={dayjs(editModal.task.dueDate)}
+              onChange={(time) => {
+                const currentDate = dayjs(editModal.task.dueDate);
+                const updated = currentDate
+                  .hour(time.hour())
+                  .minute(time.minute());
+                handleEditChange("dueDate", updated.toISOString());
+              }}
+              style={{ width: "100%", marginBottom: 8 }}
+            />
+            <Select
+              value={editModal.task.priority}
+              onChange={(val) => handleEditChange("priority", val)}
+              style={{ width: "100%", marginBottom: 8 }}
+            >
+              <Option value="low">Low</Option>
+              <Option value="medium">Medium</Option>
+              <Option value="high">High</Option>
+            </Select>
+            <Select
+              value={editModal.task.status}
+              onChange={(val) => handleEditChange("status", val)}
+              style={{ width: "100%", marginBottom: 8 }}
+            >
+              <Option value="pending">Pending</Option>
+              <Option value="in progress">In Progress</Option>
+              <Option value="completed">Completed</Option>
+            </Select>
+            <Select
+              value={editModal.task.frequency}
+              onChange={(val) => handleEditChange("frequency", val)}
+              style={{ width: "100%" }}
+            >
+              <Option value="once">Once</Option>
+              <Option value="daily">Daily</Option>
+              <Option value="weekly">Weekly</Option>
+              <Option value="monthly">Monthly</Option>
+            </Select>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
 
 export default AssignTaskTable;
-
-
-
-
-
-
-
-
-
-
-
-
-

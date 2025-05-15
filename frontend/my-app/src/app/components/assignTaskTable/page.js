@@ -44,7 +44,7 @@ const AssignTaskTable = ({ showOnly }) => {
     dispatch(getAssignedTasks());
   }, [dispatch]);
 
-  const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
+const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
     .filter((task) => task.assignStatus === "assigned")
     .filter(
       (task) =>
@@ -72,6 +72,7 @@ const AssignTaskTable = ({ showOnly }) => {
 
   const handleEditSubmit = () => {
     const updated = { ...editModal.task };
+    console.log("updated",updated)
     if (!updated.title || !updated.description) {
       return message.error("Title and description are required");
     }
@@ -122,7 +123,7 @@ const AssignTaskTable = ({ showOnly }) => {
 
           <Select
             value={sortByDueDate}
-            onChange={(val) => setSortByDueDate(val)}
+            onChange={(val) => setSortByDueDate(val)} 
           >
             <Option value="asc">Due Date ↑</Option>
             <Option value="desc">Due Date ↓</Option>

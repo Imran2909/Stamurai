@@ -1,0 +1,14 @@
+.wrapper {
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+}
+
+.requestItem {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 0;
+}
+
+.button{
+  margin-right: 32px;
+}

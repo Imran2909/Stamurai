@@ -62,17 +62,22 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
         const result = await dispatch(updateTask(task._id, formData));
         if (result?.payload) {
           messageApi.success("Task updated successfully");
-          onUpdate?.();
+          setTimeout(() => {
+            onClose?.();
+          }, 2500); // Wait 500ms to allow message to show
+          return;
         }
       } else {
         const result = await dispatch(createTask(formData));
-        if (result?.payload) {
-          messageApi.success("Task created successfully");
-          onSuccess?.();
+        console.log(result.success);
+        if (result.success) {
+          onClose?.();
+          setTimeout(() => {
+            messageApi.success("Task created successfully");
+          }, 2500);
+          return;
         }
       }
-
-      onClose?.();
     } catch (error) {
       messageApi.error(error.message || "Operation failed");
     }

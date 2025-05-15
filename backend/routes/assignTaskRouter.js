@@ -235,11 +235,19 @@ module.exports = function (io) {
 
       // Update fields
       Object.assign(task, updates);
-      const sendBy = await userModel.findById(task.sentBy);
-
       // Log the edit
       task.logs.push(createLog("edited", userId));
-      io.emit("Update-task", { task, user, sendBy:sendBy.username });
+ 
+      const sender = await userModel.findById(task.sentBy);
+      const reciever = await userModel.findById(task.sendTo);
+      console.log(sender.username, reciever.username, user.username);
+      let to;
+      if (sender.username == user.username) {
+        to = reciever.username;
+      } else {
+        to = sender.username;
+      }
+      io.emit("Update-task", { task, doneBy: user.username, to, status:updates.assignStatus });
       await task.save();
       res.status(200).json({ message: "Assigned task updated", task });
     } catch (error) {
@@ -269,8 +277,17 @@ module.exports = function (io) {
       if (!deletedTask) {
         return res.status(404).json({ message: "Assigned task not found" });
       }
-      const sendBy = await userModel.findById(deletedTask.sentBy);
-      io.emit("Delete-task", { deletedTask, user, sendBy: sendBy.username });
+      
+      const sender = await userModel.findById(deletedTask.sentBy);
+      const reciever = await userModel.findById(deletedTask.sendTo);
+      let to;
+      if (sender.username == user.username) {
+        to = reciever.username;
+      } else {
+        to = sender.username;
+      }
+      console.log({deletedTask, sender, reciever, user, to} )
+      io.emit("Delete-task", { deletedTask, doneBy: user.username, to });
 
       res
         .status(200)
@@ -282,6 +299,9 @@ module.exports = function (io) {
       });
     }
   });
+
+  // assignTaskRouter.put()
+
 
   return assignTaskRouter;
 };

@@ -1,17 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar/page";
 import styles from "../styles/assignTask.module.css";
 import AssignForm from "../components/assignForm/page";
 import AssignTaskTable from "../components/assignTaskTable/page";
-import { useSelector } from "react-redux";
-import { store } from "../redux/store";
+import { useDispatch, useSelector } from "react-redux";
 import AppWrapper from "../components/AppWrapper";
+import TaskRequests from "../components/taskRequests/page";
+import { getAssignedTasks } from "../redux/action";
 
 function AssignTask() {
   const [activeTab, setActiveTab] = useState("assignTask");
-  const [unseenRequests, setUnseenRequests] = useState(3); // Example count
+  const dispatch = useDispatch();
+  const requests = useSelector(
+    (state) => state.assignTask.assignedTasks.requests || []
+  );
+
+  useEffect(() => {
+    dispatch(getAssignedTasks()); // Refresh after accept
+  }, [dispatch, useSelector]);
 
   return (
     <AppWrapper>
@@ -57,8 +65,8 @@ function AssignTask() {
                 onClick={() => setActiveTab("taskRequests")}
               >
                 Task Requests
-                {unseenRequests > 0 && (
-                  <span className={styles.badge}>{unseenRequests}</span>
+                {requests.length > 0 && (
+                  <span className={styles.badge}>{requests.length}</span>
                 )}
               </button>
             </div>
@@ -90,8 +98,7 @@ function AssignTask() {
 
               {activeTab === "taskRequests" && (
                 <div className={styles.tabPanel}>
-                  {/* Task Requests Content */}
-                  <p>Task Requests ({unseenRequests} new)</p>
+                  <TaskRequests />
                 </div>
               )}
             </div>

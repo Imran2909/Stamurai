@@ -302,6 +302,7 @@ export const editAssignedTask = (taskId, updates) => async (dispatch) => {
       updates,
       { withCredentials: true }
     );
+    console.log(response)
     dispatch({
       type: EDIT_ASSIGNED_TASK_SUCCESS,
       payload: response.data.task,

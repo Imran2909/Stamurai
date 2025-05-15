@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import socket from "../socket/socket";
 import { message, Modal } from "antd";
+import { getAssignedTasks } from "../redux/action";
 
 const AppWrapper = ({ children }) => {
   const username = useSelector((store) => store.user.username);
@@ -10,6 +11,7 @@ const AppWrapper = ({ children }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [requestInfo, setRequestInfo] = useState(null);
   const [info, setInfo] = useState({});
+  const dispatch = useDispatch()
 
   const handleOk = () => {
     setIsModalOpen(false);
@@ -69,19 +71,21 @@ const AppWrapper = ({ children }) => {
     });
 
     socket.on("Delete-task", (data) => {
-      if (data.sendBy == username) {
+      if (data.to == username) {
         messageApi.warning(
-          `${data.deletedTask.title} task is deleted by ${data.user.username}`
-        );
+          `${data.deletedTask.title} task is deleted by ${data.doneBy}`        );
+        dispatch(getAssignedTasks()); // 🔄 Refresh tasks for all 
       }
     });
-
     socket.on("Update-task", (data) => {
-      //task.title, user.username
-      if (data.sendBy == username) {
+      if (data.to == username) {
+        console.log(data)
+        let action = data.status ? data.status : "updated"
+        console.log(action)
         messageApi.warning(
-          ` ${data.task.title} task is updated by ${data.user.username}`
+          ` ${data.task.title} task is ${action} by ${data.doneBy}`
         );
+        dispatch(getAssignedTasks());
       }
     });
 

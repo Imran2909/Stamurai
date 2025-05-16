@@ -225,7 +225,7 @@ module.exports = function (io) {
       const taskId = req.params.id;
       const userId = req.userId;
       const user = await userModel.findById(userId);
-
+ 
       const updates = req.body; // e.g., title, description, dueDate, priority, etc.
 
       const task = await assignTaskModel.findById(taskId);
@@ -299,8 +299,6 @@ module.exports = function (io) {
       });
     }
   });
-
-  // assignTaskRouter.put()
 
 
   return assignTaskRouter;

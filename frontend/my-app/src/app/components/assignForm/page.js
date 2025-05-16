@@ -94,6 +94,7 @@ const AssignForm = () => {
               value={formData.title}
               onChange={handleChange}
               required
+              
             />
           </div>
         </div>
@@ -106,7 +107,7 @@ const AssignForm = () => {
             value={formData.description}
             onChange={handleChange}
             rows="4"
-            // required
+            required
           />
         </div>
 
@@ -119,7 +120,7 @@ const AssignForm = () => {
               name="dueDate"
               value={formData.dueDate}
               onChange={handleChange}
-              // required
+              required
             />
           </div>
 
@@ -131,7 +132,7 @@ const AssignForm = () => {
               name="dueTime"
               value={formData.dueTime}
               onChange={handleChange}
-              // required
+              required
             />
           </div>
         </div>

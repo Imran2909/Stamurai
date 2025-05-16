@@ -17,6 +17,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import styles from "../../styles/assignTable.module.css";
+import { Spin } from "antd";
 
 const { Option } = Select;
 
@@ -44,7 +45,7 @@ const AssignTaskTable = ({ showOnly }) => {
     dispatch(getAssignedTasks());
   }, [dispatch]);
 
-const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
+  const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
     .filter((task) => task.assignStatus === "assigned")
     .filter(
       (task) =>
@@ -72,7 +73,7 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
 
   const handleEditSubmit = () => {
     const updated = { ...editModal.task };
-    console.log("updated",updated)
+    console.log("updated", updated);
     if (!updated.title || !updated.description) {
       return message.error("Title and description are required");
     }
@@ -96,14 +97,14 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
   return (
     <div className={styles.tableWrapper}>
       <div className={styles.controls}>
-        <div className={styles.search} >
+        <div className={styles.search}>
           <Input
             placeholder="Search by title or description..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className={styles.selects} >
+        <div className={styles.selects}>
           <Select value={filterStatus} onChange={(val) => setFilterStatus(val)}>
             <Option value="all">All Status</Option>
             <Option value="pending">Pending</Option>
@@ -123,7 +124,7 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
 
           <Select
             value={sortByDueDate}
-            onChange={(val) => setSortByDueDate(val)} 
+            onChange={(val) => setSortByDueDate(val)}
           >
             <Option value="asc">Due Date ↑</Option>
             <Option value="desc">Due Date ↓</Option>
@@ -132,7 +133,13 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
       </div>
 
       {loading ? (
-        <p>Loading...</p>
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <Spin size="large" tip="Loading tasks..." />
+        </div>
+      ) : filteredTasks.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "2rem" }}>
+          <p>No tasks found. Start by adding a task!</p>
+        </div>
       ) : (
         <table className={styles.taskTable}>
           <thead>
@@ -162,14 +169,16 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
                 <td>{task.status}</td>
                 <td>{task.frequency}</td>
                 <td>
-                  <Button className={styles.actionBtn}
+                  <Button
+                    className={styles.actionBtn}
                     onClick={() =>
                       setEditModal({ visible: true, task: { ...task } })
                     }
                   >
                     ✏️
                   </Button>
-                  <Button className={styles.actionBtn}
+                  <Button
+                    className={styles.actionBtn}
                     danger
                     onClick={() =>
                       setDeleteModal({ visible: true, taskId: task._id })
@@ -252,7 +261,7 @@ const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
               style={{ width: "100%", marginBottom: 8 }}
             >
               <Option value="pending">Pending</Option>
-              <Option value="in progress">In Progress</Option>
+              <Option value="inprogress">In Progress</Option>
               <Option value="completed">Completed</Option>
             </Select>
             <Select

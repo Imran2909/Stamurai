@@ -73,17 +73,17 @@ const AppWrapper = ({ children }) => {
     socket.on("Delete-task", (data) => {
       if (data.to == username) {
         messageApi.warning(
-          `${data.deletedTask.title} task is deleted by ${data.doneBy}`        );
+          `${data.deletedTask.title} task is deleted by ${data.doneBy}` );
         dispatch(getAssignedTasks()); // 🔄 Refresh tasks for all 
       }
     });
     socket.on("Update-task", (data) => {
       if (data.to == username) {
         console.log(data)
-        let action = data.status ? data.status : "updated"
-        console.log(action)
+        let actions = data.status ? data.status : "updated"
+        console.log(actions)
         messageApi.warning(
-          ` ${data.task.title} task is ${action} by ${data.doneBy}`
+          ` ${data.task.title} task is updated by ${data.doneBy}`
         );
         dispatch(getAssignedTasks());
       }
@@ -97,7 +97,7 @@ const AppWrapper = ({ children }) => {
       socket.off("taskRequestReject");
       socket.disconnect();
     };
-  }, [username]);
+  }, [dispatch,username]);
 
   return (
     <>
@@ -108,7 +108,7 @@ const AppWrapper = ({ children }) => {
         open={isModalOpen}
         onOk={handleOk}
         onCancel={handleCancel}
-        okText="Accept"
+        okText="Accept" 
         cancelText="Reject"
       >
         <p>{requestInfo?.from} wants to assign you a task.</p>

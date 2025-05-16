@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import AppLayout from "../components/AppLayout";
 import Table from "../components/table/page";
 import styles from "../styles/dashboard.module.css";
+import Navbar from "../components/navbar/page";
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("myTasks");
@@ -11,6 +12,9 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className={styles.container}>
+        <div>
+          <Navbar />
+        </div>
         <div className={styles.box}>
           <div className={styles.tabs}>
             <button

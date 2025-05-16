@@ -35,7 +35,9 @@ export default function Sidebar() {
         type: "success",
         content: "Logout Successful",
       });
-      router.push('/login'); // ✅ Proper redirect
+      setTimeout(()=>{
+        router.push('/login');
+      },2000)
     } else {
       messageApi.open({
         type: "error",
@@ -47,6 +49,7 @@ export default function Sidebar() {
 
   return (
     <div className={styles.sidebarContainer}>
+      {contextHolder}
       <div className={styles.sidebarContent}>
         <div className={styles.sidebarHeader}>
           <h1 className={styles.appTitle}>Task Manager</h1>

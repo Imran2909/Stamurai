@@ -48,7 +48,7 @@ import Image from "next/image";
 import HomeBanner from "./images/Home banner.jpg";
 import Link from "next/link";
 
-export default function HomePage() {
+export default function HomePage() { 
   return (
     <AppLayout>
       <div className={styles.container}>

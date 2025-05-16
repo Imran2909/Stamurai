@@ -111,7 +111,7 @@ const assignTaskReducer = (state = initialState, action) => {
     case GET_ASSIGNED_TASKS_FAILURE:
       return { ...state, loading: false, error: action.payload };
 
-    case TASK_ASSIGNED:
+    case TASK_ASSIGNED: 
       return { ...state, id: action.payload };
 
     case EDIT_ASSIGNED_TASK_SUCCESS: {

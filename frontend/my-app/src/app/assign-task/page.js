@@ -9,20 +9,33 @@ import { useDispatch, useSelector } from "react-redux";
 import AppWrapper from "../components/AppWrapper";
 import TaskRequests from "../components/taskRequests/page";
 import { getAssignedTasks } from "../redux/action";
+import { message } from "antd";
+import { useRouter } from "next/navigation";
 
 function AssignTask() {
   const [activeTab, setActiveTab] = useState("assignTask");
+  const token = useSelector((store) => store.user.token);
   const dispatch = useDispatch();
+  const router = useRouter();
   const requests = useSelector(
     (state) => state.assignTask.assignedTasks.requests || []
   );
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-    dispatch(getAssignedTasks()); // Refresh after accept
-  }, [dispatch, useSelector]);
+     if (!token) {
+    messageApi.error("Please login first");
+    setTimeout(()=>{
+      router.push("/login");
+    },3000)
+  } else {
+    dispatch(getAssignedTasks()); // Only fetch if authenticated
+  }
+  }, [dispatch]);
 
   return (
     <AppWrapper>
+      {contextHolder}
       <div className={styles.box}>
         <div className={styles.left}>
           <Sidebar />

@@ -12,7 +12,7 @@ export default function AppLayout({ children }) {
           <Sidebar />
         </div>
         <div className={styles.right}>
-          <Navbar />
+          {/* <Navbar /> */}
           <main className={styles.mainContent}>{children}</main>
         </div>
       </div>

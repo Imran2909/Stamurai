@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTasks, deleteTask } from "../../redux/action";
 import { Modal, message, Spin } from "antd";
-import styles from "../../styles/table.module.css";
+import styles from "../../styles/table.module.css"; 
 import Form from "../form/page";
 
 const formatDateTime = (dateStr, timeStr) => {

@@ -97,10 +97,9 @@ const TaskRequests = () => {
             >
               <List.Item.Meta
                 title={
-                  <Text>
-                    <strong>{task.sentBy?.username}</strong> requested you to
-                    accept a task.
-                  </Text>
+                    <p className={styles.title} >
+                    {task.sentBy?.username} requested you a new task
+                    </p>
                 }
                 description={
                   <>

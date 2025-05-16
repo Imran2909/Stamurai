@@ -8,7 +8,9 @@
   border-bottom: 1px solid #f0f0f0;
   padding: 16px 0;
 }
-
+.title{
+  font-weight: 400;
+}
 .button{
   margin-right: 32px;
 }

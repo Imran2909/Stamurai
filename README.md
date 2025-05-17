@@ -13,8 +13,8 @@ A fullstack task management web app built with **Next.js**, **Node.js**, **Expre
 1. **Clone the repo:**
 
    ```bash
-   git clone <your-repo-url>
-   cd <repo-folder>/server
+   git clone https://github.com/Imran2909/Stamurai.git
+   cd stamurai/backend
    ```
 
 2. **Install dependencies:**
@@ -44,7 +44,7 @@ A fullstack task management web app built with **Next.js**, **Node.js**, **Expre
 1. In a new terminal window/tab:
 
    ```bash
-   cd <repo-folder>/client
+   cd frontend/my-app
    npm install
    ```
 
@@ -83,6 +83,3 @@ The frontend uses **Next.js** with React and Redux to provide a responsive, dyna
 * **Real-time updates only for assigned tasks:** Socket events focus on assignment-related updates, no real-time for all tasks.
 * **No extensive styling:** UI is functional, focusing on usability over design polish.
 
----
-
-Feel free to ask if you want me to add sections like API docs or deployment notes!

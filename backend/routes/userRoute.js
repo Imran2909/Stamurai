@@ -5,10 +5,11 @@ const userModel = require("../models/userModel");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
-// Input validation middleware
+// Middleware: Validates signup input fields (username, email, password)
 const validateSignupInput = (req, res, next) => {
   const { username, email, password } = req.body;
 
+  // Check required fields
   if (!username || !email || !password) {
     return res.status(400).json({
       success: false,
@@ -16,6 +17,7 @@ const validateSignupInput = (req, res, next) => {
     });
   }
 
+  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({
@@ -24,6 +26,7 @@ const validateSignupInput = (req, res, next) => {
     });
   }
 
+  // Password length check
   if (password.length < 4) {
     return res.status(400).json({
       success: false,
@@ -34,16 +37,18 @@ const validateSignupInput = (req, res, next) => {
   next();
 };
 
+// POST /signup — Create new user with validation & hashed password
 userRouter.post("/signup", validateSignupInput, async (req, res) => {
   try {
     const { username, email, password } = req.body;
 
+    // Check if email or username already exist
     const existingUser = await userModel.findOne({
-      $or: [{ email: email }, { username: username }],
+      $or: [{ email }, { username }],
     });
+
     if (existingUser) {
-      let conflictField;
-      let message;
+      let conflictField, message;
 
       if (existingUser.email === email && existingUser.username === username) {
         conflictField = "both";
@@ -55,21 +60,24 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
         conflictField = "username";
         message = "This username is already taken";
       }
+
       return res.status(409).json({
         success: false,
-        message: message,
+        message,
         conflict: conflictField,
         available: false,
       });
     }
 
+    // Hash password with bcrypt and configured salt rounds
     const passwordHash = bcrypt.hashSync(password, +process.env.SALT_ROUND);
 
+    // Create new user document
     const newUser = new userModel({
       username,
       email,
       password: passwordHash,
-      collaborator: [],
+      collaborator: [], // Initialize empty collaborators array
     });
 
     const savedUser = await newUser.save();
@@ -110,7 +118,7 @@ userRouter.post("/signup", validateSignupInput, async (req, res) => {
   }
 });
 
-// Login route with both tokens
+// POST /login — Authenticate user, generate access & refresh tokens, set cookies
 userRouter.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -122,6 +130,7 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
+    // Find user by username
     const user = await userModel.findOne({ username });
     if (!user) {
       return res.status(401).json({
@@ -130,6 +139,7 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
+    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -138,7 +148,7 @@ userRouter.post('/login', async (req, res) => {
       });
     }
 
-    // Generate both tokens 
+    // Generate JWT tokens with different expirations
     const accessToken = jwt.sign(
       { userId: user._id },
       process.env.ACCESS_SECRET,
@@ -151,7 +161,7 @@ userRouter.post('/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    // Set both cookies
+    // Set tokens as httpOnly cookies for security
     res.cookie('accessToken', accessToken, { 
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -165,12 +175,8 @@ userRouter.post('/login', async (req, res) => {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
-    console.log("Incoming cookies on login request:", req.cookies);
 
-    console.log("Set-Cookie headers:", res.getHeaders()["set-cookie"]);
-
-
-    // console cookies
+    // Return tokens and user info in response JSON too (optional, handy for front-end)
     return res.status(200).json({
       success: true,
       message: "Login successful",
@@ -192,28 +198,24 @@ userRouter.post('/login', async (req, res) => {
   }
 });
 
-
+// POST /logout — Clear the JWT cookies to log out user
 userRouter.post('/logout', (req, res) => {
-  console.log("Cookies before clearing:", req.cookies);
 
   const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/', // VERY IMPORTANT: must match the path used in login
+    path: '/', // Must match the login cookie path
   };
 
+  // Clear both access and refresh tokens from cookies
   res.clearCookie('accessToken', cookieOptions);
   res.clearCookie('refreshToken', cookieOptions);
-
-  console.log("Set-Cookie headers after clearing:", res.getHeaders()['set-cookie']);
 
   return res.status(200).json({
     success: true,
     message: "Logged out successfully"
   });
 });
-
-
 
 module.exports = userRouter;

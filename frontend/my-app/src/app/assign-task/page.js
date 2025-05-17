@@ -17,31 +17,37 @@ function AssignTask() {
   const token = useSelector((store) => store.user.token);
   const dispatch = useDispatch();
   const router = useRouter();
+
+  // Select requests count from Redux store for the badge
   const requests = useSelector(
     (state) => state.assignTask.assignedTasks.requests || []
   );
+
   const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
-     if (!token) {
-    messageApi.error("Please login first");
-    setTimeout(()=>{
-      router.push("/login");
-    },3000)
-  } else {
-    dispatch(getAssignedTasks()); // Only fetch if authenticated
-  }
-  }, [dispatch]);
+    if (!token) {
+      messageApi.error("Please login first");
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000);
+    } else {
+      dispatch(getAssignedTasks()); // Fetch assigned tasks if user is authenticated
+    }
+  }, [token, dispatch, messageApi, router]);
 
   return (
     <AppWrapper>
       {contextHolder}
+
       <div className={styles.box}>
         <div className={styles.left}>
           <Sidebar />
         </div>
+
         <div className={styles.right}>
           <main className={styles.mainContent}>
+            {/* Tabs Navigation */}
             <div className={styles.tabsContainer}>
               <button
                 className={`${styles.tab} ${
@@ -49,7 +55,6 @@ function AssignTask() {
                 }`}
                 onClick={() => setActiveTab("assignTask")}
               >
-                {" "}
                 Assign Task to Others
               </button>
 
@@ -78,12 +83,14 @@ function AssignTask() {
                 onClick={() => setActiveTab("taskRequests")}
               >
                 Task Requests
+                {/* Show badge if there are any pending requests */}
                 {requests.length > 0 && (
                   <span className={styles.badge}>{requests.length}</span>
                 )}
               </button>
             </div>
 
+            {/* Tab Contents */}
             <div className={styles.tabContent}>
               {activeTab === "assignTask" && (
                 <div className={styles.tabPanel}>

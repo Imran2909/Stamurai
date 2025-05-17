@@ -14,26 +14,30 @@ import {
   TimePicker,
   Button,
   message,
+  Spin,
 } from "antd";
 import dayjs from "dayjs";
 import styles from "../../styles/assignTable.module.css";
-import { Spin } from "antd";
 
 const { Option } = Select;
 
 const AssignTaskTable = ({ showOnly }) => {
   const dispatch = useDispatch();
+
+  // Local state for filters and modals
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [sortByDueDate, setSortByDueDate] = useState("asc");
 
+  // Modals: Delete confirmation + edit popup
   const [deleteModal, setDeleteModal] = useState({
     visible: false,
     taskId: null,
   });
   const [editModal, setEditModal] = useState({ visible: false, task: null });
 
+  // Get tasks from Redux store
   const { assignedTasks: assignData = {}, loading } = useSelector(
     (state) => state.assignTask
   );
@@ -41,10 +45,12 @@ const AssignTaskTable = ({ showOnly }) => {
   const assignedTasks = assignData.sent || [];
   const receivedTasks = assignData.received || [];
 
+  // Fetch all assigned tasks on component load
   useEffect(() => {
     dispatch(getAssignedTasks());
   }, [dispatch]);
 
+  // Apply search, filters and sorting
   const filteredTasks = (showOnly === "sent" ? assignedTasks : receivedTasks)
     .filter((task) => task.assignStatus === "assigned")
     .filter(
@@ -64,6 +70,7 @@ const AssignTaskTable = ({ showOnly }) => {
       return sortByDueDate === "asc" ? dateA - dateB : dateB - dateA;
     });
 
+  // Delete task
   const handleDelete = () => {
     dispatch(deleteAssignedTask(deleteModal.taskId)).then(() => {
       message.success("Task deleted");
@@ -71,9 +78,10 @@ const AssignTaskTable = ({ showOnly }) => {
     });
   };
 
+  // Submit edited task
   const handleEditSubmit = () => {
     const updated = { ...editModal.task };
-    console.log("updated", updated);
+
     if (!updated.title || !updated.description) {
       return message.error("Title and description are required");
     }
@@ -84,6 +92,7 @@ const AssignTaskTable = ({ showOnly }) => {
     });
   };
 
+  // Handle change in edit modal fields
   const handleEditChange = (field, value) => {
     setEditModal((prev) => ({
       ...prev,
@@ -96,6 +105,7 @@ const AssignTaskTable = ({ showOnly }) => {
 
   return (
     <div className={styles.tableWrapper}>
+      {/* Top control panel: search, filters, sort */}
       <div className={styles.controls}>
         <div className={styles.search}>
           <Input
@@ -105,33 +115,28 @@ const AssignTaskTable = ({ showOnly }) => {
           />
         </div>
         <div className={styles.selects}>
-          <Select value={filterStatus} onChange={(val) => setFilterStatus(val)}>
+          <Select value={filterStatus} onChange={setFilterStatus}>
             <Option value="all">All Status</Option>
             <Option value="pending">Pending</Option>
-            <Option value="in progress">In Progress</Option>
+            <Option value="inprogress">In Progress</Option>
             <Option value="completed">Completed</Option>
           </Select>
 
-          <Select
-            value={filterPriority}
-            onChange={(val) => setFilterPriority(val)}
-          >
+          <Select value={filterPriority} onChange={setFilterPriority}>
             <Option value="all">All Priorities</Option>
             <Option value="low">Low</Option>
             <Option value="medium">Medium</Option>
             <Option value="high">High</Option>
           </Select>
 
-          <Select
-            value={sortByDueDate}
-            onChange={(val) => setSortByDueDate(val)}
-          >
+          <Select value={sortByDueDate} onChange={setSortByDueDate}>
             <Option value="asc">Due Date ↑</Option>
             <Option value="desc">Due Date ↓</Option>
           </Select>
         </div>
       </div>
 
+      {/* Loading, no tasks or table */}
       {loading ? (
         <div style={{ textAlign: "center", padding: "2rem" }}>
           <Spin size="large" tip="Loading tasks..." />
@@ -193,7 +198,7 @@ const AssignTaskTable = ({ showOnly }) => {
         </table>
       )}
 
-      {/* Delete Modal */}
+      {/* Delete confirmation modal */}
       <Modal
         title="Confirm Delete"
         open={deleteModal.visible}
@@ -205,7 +210,7 @@ const AssignTaskTable = ({ showOnly }) => {
         <p>Are you sure you want to delete this task?</p>
       </Modal>
 
-      {/* Edit Modal */}
+      {/* Edit task modal */}
       <Modal
         title="Edit Task"
         open={editModal.visible}
@@ -224,7 +229,9 @@ const AssignTaskTable = ({ showOnly }) => {
             <Input.TextArea
               placeholder="Description"
               value={editModal.task.description}
-              onChange={(e) => handleEditChange("description", e.target.value)}
+              onChange={(e) =>
+                handleEditChange("description", e.target.value)
+              }
               rows={3}
               style={{ marginBottom: 8 }}
             />
@@ -238,8 +245,8 @@ const AssignTaskTable = ({ showOnly }) => {
             <TimePicker
               value={dayjs(editModal.task.dueDate)}
               onChange={(time) => {
-                const currentDate = dayjs(editModal.task.dueDate);
-                const updated = currentDate
+                const current = dayjs(editModal.task.dueDate);
+                const updated = current
                   .hour(time.hour())
                   .minute(time.minute());
                 handleEditChange("dueDate", updated.toISOString());

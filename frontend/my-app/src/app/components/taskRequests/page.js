@@ -11,61 +11,67 @@ const { Text } = Typography;
 
 const TaskRequests = () => {
   const dispatch = useDispatch();
+
+  // Grab task requests and username from Redux state
   const requests = useSelector(
     (state) => state.assignTask.assignedTasks.requests || []
   );
-  console.log(requests)
   const username = useSelector((state) => state.user.username);
 
+  // Fetch assigned tasks on mount (and whenever dispatch changes, which it won't)
   useEffect(() => {
-    dispatch(getAssignedTasks()); // Refresh after accept
-  }, [dispatch,useSelector]);
+    dispatch(getAssignedTasks());
+  }, [dispatch]);
 
+  // Handle accepting a task request
   const handleAccept = async (task) => {
-    let taskId = task._id;
-    let updates = {
-      ...task,
-      assignStatus: "assigned",
-    };
-    console.log(updates);
-    await dispatch(editAssignedTask(taskId, updates)).then(() => {
-      const info = {
-        from: task.sentBy.username,
-        to: username,
-        status: "requested",
-        task,
-      };
-      socket.emit("accept-task", info);
+    const taskId = task._id;
+    const updates = { ...task, assignStatus: "assigned" };
+
+    // Update task status in backend/store
+    await dispatch(editAssignedTask(taskId, updates));
+
+    // Notify sender through socket that request was accepted
+    socket.emit("accept-task", {
+      from: task.sentBy.username,
+      to: username,
+      status: "requested",
+      task,
     });
-    dispatch(getAssignedTasks()); // Refresh after accept
+
+    // Refresh assigned tasks to reflect change
+    dispatch(getAssignedTasks());
   };
 
+  // Handle rejecting a task request
   const handleReject = async (task) => {
-    console.log(task);
-    let taskId = task._id;
-    let updates = {
-      ...task,
-      assignStatus: "rejected",
-    };
-    await dispatch(editAssignedTask(taskId, updates)).then(() => {
-      const info = {
-        from: task.sentBy.username,
-        to: username,
-        status: "requested",
-        task,
-      };
-      socket.emit("reject-task", info);
+    const taskId = task._id;
+    const updates = { ...task, assignStatus: "rejected" };
+
+    // Update task status in backend/store
+    await dispatch(editAssignedTask(taskId, updates));
+
+    // Notify sender that request was rejected
+    socket.emit("reject-task", {
+      from: task.sentBy.username,
+      to: username,
+      status: "requested",
+      task,
     });
-    message.warning(`${task.title} is rejected`)
-    console.log(updates);
-    dispatch(getAssignedTasks()); // Refresh after accept
+
+    // Show a little warning toast for feedback
+    message.warning(`${task.title} is rejected`);
+
+    // Refresh assigned tasks again
+    dispatch(getAssignedTasks());
   };
 
   return (
     <div className={styles.wrapper}>
       <h2>Task Requests</h2>
 
-      {requests?.length === 0 ? (
+      {requests.length === 0 ? (
+        // Show friendly empty state if no requests
         <Empty description="No pending task requests" />
       ) : (
         <List
@@ -97,9 +103,9 @@ const TaskRequests = () => {
             >
               <List.Item.Meta
                 title={
-                    <p className={styles.title} >
+                  <p className={styles.title}>
                     {task.sentBy?.username} requested you a new task
-                    </p>
+                  </p>
                 }
                 description={
                   <>

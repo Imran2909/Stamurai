@@ -11,7 +11,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 const app = express();
 const server = http.createServer(app);
 
-// Allow CORS
+// CORS config — allow frontend origin with credentials (cookies)
 app.use(
   cors({
     origin: "http://localhost:3000",
@@ -19,16 +19,19 @@ app.use(
   })
 );
 
+// Built-in middleware for JSON parsing & cookie parsing
 app.use(express.json());
 app.use(cookieParser());
 
+// Simple home route for sanity check
 app.get("/", (req, res) => {
   res.send("Home page for Stamurai");
 });
 
+// Public user routes (signup, login, logout)
 app.use("/user", userRouter);
 
-// 🔌 Setup Socket.IO server
+// Setup Socket.IO with CORS to match frontend
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:3000",
@@ -36,40 +39,42 @@ const io = new Server(server, {
   },
 });
 
-// Pass io into router
+// Inject io into assignTaskRouter to enable socket event emission
 const assignTaskRouter = require("./routes/assignTaskRouter")(io);
 
-// ⬇️ Protect routes
+// Protect all routes below this middleware (require auth)
 app.use(authMiddleware);
 
-// Routes
+// Protected routes for task management and assignment
 app.use("/task", taskRouter);
 app.use("/assignTask", assignTaskRouter);
 
+// Map to track connected users if needed later
 const connectedUsers = new Map();
 
+// Socket.IO connection events
 io.on("connection", (socket) => {
-  console.log("✅ [SERVER] A user connected");
 
+  // Client joins a room named by their username
   socket.on("join", (username) => {
     socket.join(username);
-    console.log(`👥 [SERVER] ${username} joined their personal room`);
 
-    // ✅ Notify all users including the one who joined
+    // Broadcast to all clients that a new user joined (including self)
     io.emit("new_user_joined", { username });
   });
 
-  socket.on("task-assign", ({ from, to, status,id }) => {
-    console.log(`📤 [SERVER] Sending task to ${to} ${id}`);
-    io.to(to).emit("task-assign", { from,to, status,id });
+  // Emit task assignments to specific user room
+  socket.on("task-assign", ({ from, to, status, id }) => {
+    io.to(to).emit("task-assign", { from, to, status, id });
   });
 
-
+  // Handle disconnect if you want (optional)
   socket.on("disconnect", () => {
-    console.log("❌ [SERVER] User disconnected");
+    // You could remove user from connectedUsers here if tracked
   });
 });
 
+// Start server and connect to DB
 server.listen(5000, async () => {
   try {
     await connection;

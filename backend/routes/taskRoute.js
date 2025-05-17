@@ -3,18 +3,20 @@ const taskRouter = express.Router();
 const Task = require("../models/taskModel");
 const authMiddleware = require("../middleware/authMiddleware");
 
-// Helper to create a log entry
+// Utility: Creates a log object to track task actions
 const createLog = (action, userId) => ({
   action,
   user: userId,
   timestamp: new Date(),
 });
 
-// 1. POST: Create a new task
-taskRouter.post("/create", authMiddleware,  async (req, res) => {
+// ========== ROUTES ==========
+
+// 1. POST /create — Create a new personal task
+taskRouter.post("/create", authMiddleware, async (req, res) => {
   try {
-      const userId = req.userId; // comes from authMiddleware
-      console.log(userId)
+    const userId = req.userId; // Authenticated user ID
+
     const {
       title,
       description,
@@ -33,83 +35,89 @@ taskRouter.post("/create", authMiddleware,  async (req, res) => {
       priority,
       status,
       frequency,
-      userId:req.userId,
+      userId,
       logs: [createLog("created", userId)],
     });
 
     await newTask.save();
-    console.log({ message: "Task created successfully", task: newTask })
+
     res.status(201).json({ message: "Task created successfully", task: newTask });
   } catch (error) {
     res.status(500).json({ message: "Failed to create task", error: error.message });
   }
 });
 
-// 2. GET: Fetch all tasks of the authenticated user
+// 2. GET /all — Get all tasks of the logged-in user (no soft-delete filter)
 taskRouter.get("/all", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
 
     const tasks = await Task.find({ userId });
-    // console.log(userId,tasks)
+
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch tasks", error: error.message });
   }
 });
 
-// 2. GET: Fetch all tasks of the authenticated user
+// 3. GET / — Get only active (non-deleted) tasks of the user
 taskRouter.get("/", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
 
     const tasks = await Task.find({
+      userId,
       $or: [
-        { logs: { $not: { $elemMatch: { action: 'deleted' } } } },
-        { logs: { $exists: false } }
+        { logs: { $not: { $elemMatch: { action: "deleted" } } } }, // Exclude deleted
+        { logs: { $exists: false } }, // Edge case: no logs
       ],
-      userId: req.userId
     });
-    // console.log(userId,tasks)
+
     res.status(200).json(tasks);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch tasks", error: error.message });
   }
 });
 
-// 3. PATCH: Update a task by ID
+// 4. PATCH /update/:id — Update a task and log the action
 taskRouter.patch("/update/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const taskId = req.params.id;
     const updateData = req.body;
+
+    // Push update log as part of the update
     updateData.$push = {
       logs: createLog("updated", userId),
     };
+
     const updatedTask = await Task.findByIdAndUpdate(taskId, updateData, {
       new: true,
     });
+
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
     }
+
     res.status(200).json({ message: "Task updated", task: updatedTask });
   } catch (error) {
     res.status(500).json({ message: "Failed to update task", error: error.message });
   }
 });
 
-// 4. DELETE: Soft delete a task by pushing a 'deleted' log
+// 5. DELETE /delete/:id — Soft-delete a task by adding a 'deleted' log
 taskRouter.delete("/delete/:id", authMiddleware, async (req, res) => {
   try {
     const userId = req.userId;
     const taskId = req.params.id;
+
     const deletedTask = await Task.findByIdAndUpdate(
       taskId,
       {
         $push: {
           logs: createLog("deleted", userId),
         },
-        status: "completed", // optional: you can also mark status as completed or soft-deleted
+        status: "completed", // Optional: also mark status for UI reference
       },
       { new: true }
     );
@@ -117,6 +125,7 @@ taskRouter.delete("/delete/:id", authMiddleware, async (req, res) => {
     if (!deletedTask) {
       return res.status(404).json({ message: "Task not found" });
     }
+
     res.status(200).json({ message: "Task soft-deleted", task: deletedTask });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete task", error: error.message });

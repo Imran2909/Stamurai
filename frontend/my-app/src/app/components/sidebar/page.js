@@ -7,6 +7,7 @@ import { useState } from "react";
 import { logoutUser } from "../../redux/action";
 import { usePathname, useRouter } from "next/navigation";
 
+// List of nav items to show on sidebar
 const navItems = [
   { label: "Home", path: "/" },
   { label: "Dashboard", path: "/dashboard" },
@@ -16,17 +17,17 @@ const navItems = [
 
 export default function Sidebar() {
   const dispatch = useDispatch();
-  const token = useSelector((store) => store.user.token);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const pathname = usePathname();
-  const router = useRouter(); // ✅ useRouter hook
-  const [messageApi, contextHolder] = message.useMessage();
+  const token = useSelector((store) => store.user.token); // Get auth token from Redux
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal control for logout confirm
+  const pathname = usePathname(); // Get current path for active link highlighting
+  const router = useRouter(); // For redirecting on logout
+  const [messageApi, contextHolder] = message.useMessage(); // AntD message control
 
+  // Trigger logout modal
   const handleLogout = () => setIsModalOpen(true);
 
+  // Confirm logout -> dispatch action, redirect, show toast
   const handleOk = async () => {
-   
-    
     const success = await dispatch(logoutUser());
     setIsModalOpen(false);
 
@@ -35,32 +36,37 @@ export default function Sidebar() {
         type: "success",
         content: "Logout Successful",
       });
-      setTimeout(()=>{
-        router.push('/login');
-      },2000)
+      setTimeout(() => {
+        router.push("/login"); // Redirect to login after 2s
+      }, 2000);
     } else {
       messageApi.open({
         type: "error",
-        content: message,
+        content: "Logout failed. Please try again.",
       });
     }
   };
+
+  // Cancel logout
   const handleCancel = () => setIsModalOpen(false);
 
   return (
     <div className={styles.sidebarContainer}>
       {contextHolder}
       <div className={styles.sidebarContent}>
+        {/* Sidebar Title */}
         <div className={styles.sidebarHeader}>
           <h1 className={styles.appTitle}>Task Manager</h1>
         </div>
+
+        {/* Navigation Menu */}
         <nav className={styles.navMenu}>
           {navItems.map((item) => (
             <Link key={item.path} href={item.path} className={styles.navLink}>
               <span
                 className={
                   pathname === item.path
-                    ? `${styles.navItem} ${styles.activeItem}`
+                    ? `${styles.navItem} ${styles.activeItem}` // Highlight active link
                     : styles.navItem
                 }
               >
@@ -69,6 +75,7 @@ export default function Sidebar() {
             </Link>
           ))}
 
+          {/* Show logout if user is logged in, otherwise show login */}
           {token ? (
             <span
               className={styles.navLink}
@@ -92,6 +99,7 @@ export default function Sidebar() {
           )}
         </nav>
 
+        {/* Logout confirmation modal */}
         <Modal
           title="Confirm Logout"
           open={isModalOpen}

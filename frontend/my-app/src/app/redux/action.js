@@ -34,6 +34,7 @@ import {
 } from "./actionTypes";
 import axios from "axios";
 
+// for signing up
 export const signupUser = (username, email, password) => async (dispatch) => {
   dispatch({ type: SIGNUP_REQUEST });
 
@@ -60,6 +61,7 @@ export const signupUser = (username, email, password) => async (dispatch) => {
   }
 };
 
+//Login user
 export const loginUser = (username, password) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
@@ -78,7 +80,6 @@ export const loginUser = (username, password) => async (dispatch) => {
     if (!response.ok) {
       throw new Error(data.message || "Login failed");
     }
-    console.log("data from acct", data.user.username);
     dispatch({
       type: LOGIN_SUCCESS,
       payload: [data.accessToken, data.user.username],
@@ -90,6 +91,7 @@ export const loginUser = (username, password) => async (dispatch) => {
   }
 };
 
+// Logout user
 export const logoutUser = () => async (dispatch) => {
   try {
     // 1. Clear server-side session
@@ -109,6 +111,7 @@ export const logoutUser = () => async (dispatch) => {
   }
 };
 
+// fetch all tasks on mounting
 export const fetchTasks = () => {
   return async (dispatch) => {
     dispatch({ type: FETCH_TASKS_REQUEST });
@@ -119,7 +122,6 @@ export const fetchTasks = () => {
       });
 
       dispatch({ type: FETCH_TASKS_SUCCESS, payload: response.data });
-      // console.log(response.data)
     } catch (error) {
       if (error.response && error.response.status === 401) {
         dispatch({ type: FETCH_TASKS_FAILURE, payload: "Unauthorized" });
@@ -130,6 +132,7 @@ export const fetchTasks = () => {
   };
 };
 
+// Creating a new task
 export const createTask = (taskData) => async (dispatch) => {
   dispatch({ type: CREATE_TASK_REQUEST });
 
@@ -168,6 +171,8 @@ export const createTask = (taskData) => async (dispatch) => {
   }
 };
 
+
+// to soft delete the task
 export const deleteTask = (id, token) => async (dispatch) => {
   dispatch({ type: DELETE_TASK_REQUEST });
 
@@ -187,6 +192,7 @@ export const deleteTask = (id, token) => async (dispatch) => {
   }
 };
 
+// for handeling a task update
 export const updateTask = (id, updatedData) => async (dispatch) => {
   dispatch({ type: FETCH_TASKS_REQUEST }); // optional: reuse for loader
 
@@ -210,23 +216,22 @@ export const updateTask = (id, updatedData) => async (dispatch) => {
   }
 };
 
+// for searching functionality
 export const setSearchQuery = (query) => ({
   type: SET_SEARCH_QUERY,
   payload: query,
 });
 
+// to assign task
 export const assignTask = (taskData) => async (dispatch) => {
-  console.log("Dispatching assignTask with:", taskData);
   try {
     const response = await axios.post("http://localhost:5000/assignTask", taskData,{
       withCredentials:true
     });
-    console.log("Backend response:", response.data);
 
     if (response.data.task.assignStatus === "requested") {
       console.log("This was a REQUEST (not direct assignment)");
     }
-    console.log("Task id is", response.data.task._id)
     dispatch({type:TASK_ASSIGNED,payload:response.data.task._id})
     return response.data;
   } catch (error) {
@@ -246,7 +251,6 @@ export const getAssignedTasks = () => async (dispatch) => {
     const response = await axios.get("http://localhost:5000/assignTask/", {
       withCredentials: true,
     });
-    console.log(response)
     dispatch({
       type: GET_ASSIGNED_TASKS_SUCCESS,
       payload: response.data,
@@ -302,7 +306,6 @@ export const editAssignedTask = (taskId, updates) => async (dispatch) => {
       updates,
       { withCredentials: true }
     );
-    console.log(response)
     dispatch({
       type: EDIT_ASSIGNED_TASK_SUCCESS,
       payload: response.data.task,
@@ -319,7 +322,6 @@ export const editAssignedTask = (taskId, updates) => async (dispatch) => {
 export const deleteAssignedTask = (taskId) => async (dispatch) => {
   dispatch({ type: DELETE_ASSIGNED_TASK_REQUEST });
   try {
-    console.log(taskId)
     const response = await axios.delete(
       `http://localhost:5000/assignTask/delete/${taskId}`,
       { withCredentials: true }

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "../../styles/assignForm.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { assignTask } from "../../redux/action";
@@ -7,7 +7,10 @@ import { message } from "antd";
 import socket from "../../socket/socket";
 
 const AssignForm = () => {
-  const User = useSelector((store) => store.user.username);
+  const dispatch = useDispatch();
+  const currentUser = useSelector((store) => store.user.username);
+  const [messageApi, contextHolder] = message.useMessage();
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -19,11 +22,7 @@ const AssignForm = () => {
     sendTo: "",
   });
 
-  const dispatch = useDispatch();
-  const [messageApi, contextHolder] = message.useMessage();
-
-  useEffect(() => {}, []);
-
+  // Handle form field updates
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -32,38 +31,34 @@ const AssignForm = () => {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("✉️ Form submitted with data:", formData);
 
-    if (User === formData.sendTo) {
-      messageApi.error("You cannot assign task to yourself");
+    if (currentUser === formData.sendTo.trim()) {
+      messageApi.error("You cannot assign a task to yourself.");
       return;
     }
 
     try {
       const result = await dispatch(assignTask(formData));
-      console.log("Dispatch result:", result);
 
       if (result?.error) {
-        console.log("❌ Assignment error:", result.error);
         messageApi.error(result.error);
       } else if (result?.task) {
-        console.log("✅ Assignment result:", result.message);
         messageApi.success(result.message);
 
-        // ✅ Emit socket event for task assignment
+        // Emit socket event to notify receiver
         socket.emit("task-assign", {
-          from: User ,
-          to: formData.sendTo,
+          from: currentUser,
+          to: formData.sendTo.trim(),
           status: result.status,
-          id:result.task._id
+          id: result.task._id,
         });
-
       }
-    } catch (error) {
-      console.log("🔥 Form submission error:", error);
-      messageApi.error("Failed to assign task");
+    } catch (err) {
+      console.error("Task assignment error:", err);
+      messageApi.error("Failed to assign task.");
     }
   };
 
@@ -71,14 +66,15 @@ const AssignForm = () => {
     <>
       {contextHolder}
       <form className={styles.assignForm} onSubmit={handleSubmit}>
+        {/* Top Row: Username & Title */}
         <div className={styles.firstBox}>
           <div className={styles.formGroup1}>
-            <label htmlFor="sendTo">Username to Assign</label>
+            <label htmlFor="sendTo">Assign To (Username)</label>
             <input
               type="text"
               id="sendTo"
               name="sendTo"
-              placeholder="Enter username (e.g. johndoe)"
+              placeholder="e.g. johndoe"
               value={formData.sendTo}
               onChange={handleChange}
               required
@@ -86,7 +82,7 @@ const AssignForm = () => {
           </div>
 
           <div className={styles.formGroup1}>
-            <label htmlFor="title">Title</label>
+            <label htmlFor="title">Task Title</label>
             <input
               type="text"
               id="title"
@@ -94,23 +90,24 @@ const AssignForm = () => {
               value={formData.title}
               onChange={handleChange}
               required
-              
             />
           </div>
         </div>
 
+        {/* Description */}
         <div className={styles.formGroup}>
           <label htmlFor="description">Description</label>
           <textarea
             id="description"
             name="description"
+            rows="4"
             value={formData.description}
             onChange={handleChange}
-            rows="4"
             required
           />
         </div>
 
+        {/* Due Date & Time */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="dueDate">Due Date</label>
@@ -137,6 +134,7 @@ const AssignForm = () => {
           </div>
         </div>
 
+        {/* Priority, Status, Frequency */}
         <div className={styles.formRow}>
           <div className={styles.formGroup}>
             <label htmlFor="priority">Priority</label>
@@ -193,15 +191,3 @@ const AssignForm = () => {
 };
 
 export default AssignForm;
-
-
-
-
-
-
-
-
-
-
-
-

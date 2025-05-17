@@ -1,21 +1,25 @@
 "use client";
+
 import { useState } from "react";
-import { message } from "antd";
-import styles from "../styles/login.module.css";
-import Image from "next/image";
-import LoginBanner from "../images/Login banner.jpg";
 import { useDispatch, useSelector } from "react-redux";
+import { message } from "antd";
+import Image from "next/image";
+import styles from "../styles/login.module.css";
+import LoginBanner from "../images/Login banner.jpg";
 import { loginUser, signupUser } from "../redux/action";
-import { LOGIN_REQUEST, LOGIN_SUCCESS, STOP } from "../redux/actionTypes";
+import { STOP } from "../redux/actionTypes";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.user);
   const loading = useSelector((state) => state.user.isLoading);
-  console.log(loading);
+
+  // Toggle between login/signup
   const [isLogin, setIsLogin] = useState(true);
+
+  // Message API from Ant Design
   const [messageApi, contextHolder] = message.useMessage();
-  console.log(user);
+
+  // Form data state
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -24,6 +28,7 @@ export default function LoginPage() {
     agreeTerms: false,
   });
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -32,42 +37,43 @@ export default function LoginPage() {
     }));
   };
 
+  // Form submit logic
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const successMessage = (msg) =>
+      messageApi.open({ type: "success", content: msg });
+
+    const errorMessage = (msg) =>
+      messageApi.open({ type: "error", content: msg });
+
     try {
-      const successMessage = (message) => {
-        messageApi.open({
-          type: "success",
-          content: message,
-        });
-      };
-      const errorMessage = (message) => {
-        messageApi.open({
-          type: "error",
-          content: message,
-        });
-      };
-      if (!isLogin && formData.password !== formData.confirmPassword) {
-        errorMessage("Passwords don't match");
-        dispatch({type:STOP})
-        return
+      // Signup validations
+      if (!isLogin) {
+        if (formData.password !== formData.confirmPassword) {
+          errorMessage("Passwords don't match");
+          dispatch({ type: STOP });
+          return;
+        }
+        if (!formData.agreeTerms) {
+          errorMessage("You must agree to the terms");
+          dispatch({ type: STOP });
+          return;
+        }
       }
-      if (!isLogin && !formData.agreeTerms) {
-        errorMessage("You must agree to the terms");
-        dispatch({type:STOP})  
-        return
-      }
+
+      // Login logic
       if (isLogin) {
-        const result1 = await dispatch(
+        const result = await dispatch(
           loginUser(formData.username, formData.password)
         );
-        if (result1.success) {
-          successMessage( result1.message );
-          window.location.href = "/";
-        } else {
-          errorMessage( result1.message )
-        }
-      } else {
+        result.success
+          ? (successMessage(result.message), (window.location.href = "/"))
+          : errorMessage(result.message);
+      } 
+      
+      // Signup logic
+      else {
         const result = await dispatch(
           signupUser(formData.username, formData.email, formData.password)
         );
@@ -80,20 +86,22 @@ export default function LoginPage() {
             confirmPassword: "",
             agreeTerms: false,
           });
-          setIsLogin(true);
+          setIsLogin(true); // Flip to login view
         } else {
-          errorMessage(result.message)
+          errorMessage(result.message);
         }
       }
     } catch (error) {
       console.error("Error:", error);
-      message.error(error.message);
+      errorMessage("Something went wrong");
     }
   };
 
   return (
     <div className={styles.loginContainer}>
       {contextHolder}
+
+      {/* Left: Banner Image */}
       <div className={styles.bannerContainer}>
         <Image
           src={LoginBanner}
@@ -105,9 +113,10 @@ export default function LoginPage() {
         />
       </div>
 
+      {/* Right: Login / Signup Card */}
       <div className={styles.formWrapper}>
-        {/* Login Form */}
         <div className={`${styles.formCard} ${!isLogin ? styles.flipped : ""}`}>
+          {/* Login Form */}
           <div className={`${styles.formSide} ${styles.front}`}>
             <form className={styles.form} onSubmit={handleSubmit}>
               <h2 className={styles.formTitle}>Login</h2>

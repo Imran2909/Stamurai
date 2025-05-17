@@ -5,12 +5,17 @@ import { useDispatch } from "react-redux";
 import { createTask, updateTask } from "../../redux/action";
 import { message } from "antd";
 
+// Main form component for creating or editing a task
 export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
   const dispatch = useDispatch();
+
+  // Ant Design's message API for toast-style notifications
   const [messageApi, contextHolder] = message.useMessage();
 
+  // If a task is passed in, we're editing; otherwise, creating new
   const isEditing = Boolean(task);
 
+  // Local state to hold form inputs
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,11 +26,14 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
     status: "pending",
   });
 
+  // Populate form with task data when editing
   useEffect(() => {
     if (task) {
+      // Format date string to yyyy-mm-dd (for <input type="date" />)
       const formatDate = (dateStr) => dateStr?.split("T")[0] || "";
+
+      // Format time string to HH:mm in 24-hour format
       const formatTime = (timeStr) => {
-        // Ensure HH:MM 24-hour format
         if (!timeStr) return "";
         if (timeStr.includes("AM") || timeStr.includes("PM")) {
           const [time, modifier] = timeStr.split(" ");
@@ -34,9 +42,10 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
           if (modifier === "PM") hours = String(parseInt(hours, 10) + 12);
           return `${hours.padStart(2, "0")}:${minutes}`;
         }
-        return timeStr.slice(0, 5); // crop to HH:MM if longer
+        return timeStr.slice(0, 5); // Fallback for already 24hr string
       };
 
+      // Set form with prefilled values
       setFormData({
         title: task.title || "",
         description: task.description || "",
@@ -49,32 +58,35 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
     }
   }, [task]);
 
+  // Handler to update form fields
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
+  // Submit handler for create or update
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       if (isEditing) {
+        // Update existing task
         const result = await dispatch(updateTask(task._id, formData));
         if (result?.payload) {
-          messageApi.success("Task updated successfully");
+          onClose?.(); // Optional close modal
           setTimeout(() => {
-            onClose?.();
-          }, 2500); // Wait 500ms to allow message to show
+            messageApi.success("Task updated successfully");
+          }, 500);
           return;
         }
       } else {
+        // Create new task
         const result = await dispatch(createTask(formData));
-        console.log(result.success);
         if (result.success) {
           onClose?.();
           setTimeout(() => {
             messageApi.success("Task created successfully");
-          }, 2500);
+          }, 500);
           return;
         }
       }
@@ -91,11 +103,9 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
       </h2>
 
       <form onSubmit={handleSubmit} className={styles.taskForm}>
-        {/* Title */}
+        {/* Title field */}
         <div className={styles.formGroup}>
-          <label htmlFor="title" className={styles.inputLabel}>
-            Title
-          </label>
+          <label htmlFor="title" className={styles.inputLabel}>Title</label>
           <input
             type="text"
             id="title"
@@ -106,11 +116,9 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
           />
         </div>
 
-        {/* Description */}
+        {/* Description field */}
         <div className={styles.formGroup}>
-          <label htmlFor="description" className={styles.inputLabel}>
-            Description
-          </label>
+          <label htmlFor="description" className={styles.inputLabel}>Description</label>
           <textarea
             id="description"
             value={formData.description}
@@ -120,12 +128,11 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
           />
         </div>
 
-        {/* Due Date and Time */}
+        {/* Due date & time */}
         <div className={styles.dateTimeGroup}>
+          {/* Date input */}
           <div className={styles.formGroup}>
-            <label htmlFor="dueDate" className={styles.inputLabel}>
-              Due Date
-            </label>
+            <label htmlFor="dueDate" className={styles.inputLabel}>Due Date</label>
             <input
               type="date"
               id="dueDate"
@@ -136,10 +143,9 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
             />
           </div>
 
+          {/* Time input */}
           <div className={styles.formGroup}>
-            <label htmlFor="dueTime" className={styles.inputLabel}>
-              Due Time
-            </label>
+            <label htmlFor="dueTime" className={styles.inputLabel}>Due Time</label>
             <input
               type="time"
               id="dueTime"
@@ -150,12 +156,11 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* Priority, Frequency, Status */}
+        {/* Priority / Frequency / Status dropdowns */}
         <div className={styles.selectGroup}>
+          {/* Priority */}
           <div className={styles.formGroup}>
-            <label htmlFor="priority" className={styles.inputLabel}>
-              Priority
-            </label>
+            <label htmlFor="priority" className={styles.inputLabel}>Priority</label>
             <select
               id="priority"
               value={formData.priority}
@@ -168,10 +173,9 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
             </select>
           </div>
 
+          {/* Frequency */}
           <div className={styles.formGroup}>
-            <label htmlFor="frequency" className={styles.inputLabel}>
-              Frequency
-            </label>
+            <label htmlFor="frequency" className={styles.inputLabel}>Frequency</label>
             <select
               id="frequency"
               value={formData.frequency}
@@ -185,10 +189,9 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
             </select>
           </div>
 
+          {/* Status */}
           <div className={styles.formGroup}>
-            <label htmlFor="status" className={styles.inputLabel}>
-              Status
-            </label>
+            <label htmlFor="status" className={styles.inputLabel}>Status</label>
             <select
               id="status"
               value={formData.status}
@@ -202,6 +205,7 @@ export default function Form({ task = null, onSuccess, onClose, onUpdate }) {
           </div>
         </div>
 
+        {/* Final submit button */}
         <button type="submit" className={styles.submitButton}>
           {isEditing ? "Update Task" : "Create Task"}
         </button>

@@ -132,7 +132,6 @@ export default function Table({ filter = "all" }) {
   useEffect(() => {
     if (allTasks.length) {
       setFilteredTasks(getFilteredTasks(filter, allTasks));
-      console.log(getFilteredTasks(filter, allTasks));
     }
   }, [
     allTasks,

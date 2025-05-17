@@ -1,44 +1,54 @@
 "use client";
 import { useDispatch } from "react-redux";
 import styles from "../../styles/navbar.module.css";
-import { STOP, SET_SEARCH_QUERY, SET_PRIORITY_FILTER, SET_STATUS_FILTER, SET_DUE_DATE_FILTER } from "../../redux/actionTypes";
+import {
+  SET_SEARCH_QUERY,
+  SET_PRIORITY_FILTER,
+  SET_STATUS_FILTER,
+  SET_DUE_DATE_FILTER
+} from "../../redux/actionTypes";
 
 export default function Navbar() {
   const dispatch = useDispatch();
 
+  // Handle search input and dispatch it to redux store
   const handleSearchChange = (e) => {
-    dispatch({ 
-      type: SET_SEARCH_QUERY, 
-      payload: e.target.value 
+    dispatch({
+      type: SET_SEARCH_QUERY,
+      payload: e.target.value,
     });
   };
 
+  // Filter: Priority
   const handlePriorityFilterChange = (e) => {
     dispatch({
       type: SET_PRIORITY_FILTER,
-      payload: e.target.value
+      payload: e.target.value,
     });
   };
 
+  // Filter: Status
   const handleStatusFilterChange = (e) => {
     dispatch({
       type: SET_STATUS_FILTER,
-      payload: e.target.value
+      payload: e.target.value,
     });
   };
 
+  // Filter: Due Date sorting (asc/desc)
   const handleDueDateFilterChange = (e) => {
     dispatch({
       type: SET_DUE_DATE_FILTER,
-      payload: e.target.value
+      payload: e.target.value,
     });
   };
 
   return (
     <div className={styles.navbar}>
+      {/* Search bar section */}
       <div className={styles.searchContainer}>
         <svg
-          className={styles.searchIcon} 
+          className={styles.searchIcon}
           width="18"
           height="18"
           viewBox="0 0 24 24"
@@ -59,10 +69,10 @@ export default function Navbar() {
         />
       </div>
 
-      {/* Filters */}
+      {/* Dropdown filters for Priority, Status, Due Date */}
       <div className={styles.filters}>
         {/* Priority Filter */}
-        <select 
+        <select
           className={styles.filterDropdown}
           onChange={handlePriorityFilterChange}
           defaultValue=""
@@ -74,7 +84,7 @@ export default function Navbar() {
         </select>
 
         {/* Status Filter */}
-        <select 
+        <select
           className={styles.filterDropdown}
           onChange={handleStatusFilterChange}
           defaultValue=""
@@ -85,8 +95,8 @@ export default function Navbar() {
           <option value="completed">Completed</option>
         </select>
 
-        {/* Due Date Filter */}
-        <select 
+        {/* Due Date Sort Filter */}
+        <select
           className={styles.filterDropdown}
           onChange={handleDueDateFilterChange}
           defaultValue=""
@@ -96,7 +106,6 @@ export default function Navbar() {
           <option value="desc">Descending</option>
         </select>
       </div>
-
     </div>
   );
 }

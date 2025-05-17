@@ -12,67 +12,63 @@ import {
 const initialState = {
   isLoading: false,
   token: null,
-  isError: false,
-  data: [],
+  isError: null,      // changed from boolean to null/string for error messages
+  data: [],           // not currently used? Consider removing if unused
   signupSuccess: false,
-  username:null
+  username: null,
 };
 
 export const userReducer = (state = initialState, action) => {
   switch (action.type) {
     case LOGIN_REQUEST:
-      return {
-        ...state,
-        isLoading: true,
-        isError: null,
-      };
     case SIGNUP_REQUEST:
       return {
         ...state,
         isLoading: true,
-        isError: null,
+        isError: null,  // reset error on new request
       };
+
     case LOGIN_SUCCESS:
       return {
         ...state,
         isLoading: false,
-        token: action.payload[0],
+        token: action.payload[0],      // store token
+        username: action.payload[1],   // store username
         isError: null,
-        username:action.payload[1]
       };
+
     case SIGNUP_SUCCESS:
       return {
         ...state,
         isLoading: false,
+        signupSuccess: true,           // flag signup success
         isError: null,
-        signupSuccess: true,
       };
+
     case LOGIN_FAILURE:
-      return {
-        ...state,
-        isLoading: false,
-        user: null,
-        isError: action.payload,
-      };
     case SIGNUP_FAILURE:
       return {
         ...state,
         isLoading: false,
-        user: null,
-        isError: action.payload,
+        token: null,       // clear token on failure
+        isError: action.payload, // store error message
       };
+
     case LOGOUT:
       return {
         ...state,
-        token: null, // Make sure this is explicitly set to null
+        token: null,       // clear token on logout
+        username: null,    // clear username on logout
         isLoading: false,
         isError: null,
       };
+
     case STOP:
       return {
         ...state,
-        isLoading: false,
+        isLoading: false,  // generic stop loading action
       };
+
     default:
       return state;
   }

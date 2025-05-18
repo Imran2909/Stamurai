@@ -82,7 +82,3 @@ The frontend uses **Next.js** with React and Redux to provide a responsive, dyna
 * **Soft Delete for Assigned Tasks:** Assigned tasks are soft deleted to preserve history; deleted tasks no longer appear in the UI.
 * **Real-time updates only for assigned tasks:** Socket events focus on assignment-related updates, no real-time for all tasks.
 * **No extensive styling:** UI is functional, focusing on usability over design polish.
-
----
-
-Feel free to ask if you want me to add sections like API docs or deployment notes!

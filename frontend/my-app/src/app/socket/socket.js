@@ -1,9 +1,10 @@
 // src/socket.js
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000", {
-  autoConnect: false,
-  withCredentials: true,
+const socket = io("https://stamurai-backend-cm0v.onrender.com", {
+  transports: ['websocket'],
+  withCredentials: true
 });
+
 
 export default socket;

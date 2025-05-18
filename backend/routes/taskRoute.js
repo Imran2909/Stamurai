@@ -50,7 +50,7 @@ taskRouter.post("/create", authMiddleware, async (req, res) => {
 // 2. GET /all — Get all tasks of the logged-in user (no soft-delete filter)
 taskRouter.get("/all", authMiddleware, async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.userId; 
 
     const tasks = await Task.find({ userId });
 

@@ -39,8 +39,9 @@ export const signupUser = (username, email, password) => async (dispatch) => {
   dispatch({ type: SIGNUP_REQUEST });
 
   try {
-    const response = await fetch("http://localhost:5000/user/signup", {
+    const response = await fetch("https://stamurai-backend-cm0v.onrender.com/user/signup", {
       method: "POST",
+      credentials: "include", // required for cookies/session to work
       headers: {
         "Content-Type": "application/json",
       },
@@ -61,29 +62,39 @@ export const signupUser = (username, email, password) => async (dispatch) => {
   }
 };
 
-//Login user
+
+// Login user action
 export const loginUser = (username, password) => async (dispatch) => {
   dispatch({ type: LOGIN_REQUEST });
 
   try {
-    const response = await fetch("http://localhost:5000/user/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ username, password }),
-    });
+    const response = await fetch(
+      "https://stamurai-backend-cm0v.onrender.com/user/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
       throw new Error(data.message || "Login failed");
     }
+
+    // Store tokens in localStorage for persistence
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+
+    // Dispatch success with token and username
     dispatch({
       type: LOGIN_SUCCESS,
       payload: [data.accessToken, data.user.username],
     });
+
     return { success: true, message: "Login Successful" };
   } catch (error) {
     dispatch({ type: LOGIN_FAILURE, payload: error.message });
@@ -91,19 +102,16 @@ export const loginUser = (username, password) => async (dispatch) => {
   }
 };
 
-// Logout user
-export const logoutUser = () => async (dispatch) => {
+// Logout user action
+export const logoutUser = () => (dispatch) => {
   try {
-    // 1. Clear server-side session
-    await axios.post(
-      "http://localhost:5000/user/logout",
-      {},
-      {
-        withCredentials: true,
-      }
-    );
+    // 1. Clear tokens from localStorage
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+
     // 2. Clear Redux state
     dispatch({ type: LOGOUT });
+
     return true;
   } catch (error) {
     console.log("Logout failed:", error);
@@ -117,9 +125,17 @@ export const fetchTasks = () => {
     dispatch({ type: FETCH_TASKS_REQUEST });
 
     try {
-      const response = await axios.get("http://localhost:5000/task/", {
-        withCredentials: true,
-      });
+      const token = localStorage.getItem("accessToken"); // get token from localStorage
+
+      const response = await axios.get(
+        "https://stamurai-backend-cm0v.onrender.com/task/",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // send token in header
+          },
+          // No need for withCredentials if you don't use cookies
+        }
+      );
 
       dispatch({ type: FETCH_TASKS_SUCCESS, payload: response.data });
     } catch (error) {
@@ -137,11 +153,15 @@ export const createTask = (taskData) => async (dispatch) => {
   dispatch({ type: CREATE_TASK_REQUEST });
 
   try {
+    const token = localStorage.getItem("accessToken"); // get token from localStorage
+
     const response = await axios.post(
-      "http://localhost:5000/task/create",
+      "https://stamurai-backend-cm0v.onrender.com/task/create",
       taskData,
       {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
@@ -171,15 +191,21 @@ export const createTask = (taskData) => async (dispatch) => {
   }
 };
 
-
-// to soft delete the task
-export const deleteTask = (id, token) => async (dispatch) => {
+// To soft delete the task
+export const deleteTask = (id) => async (dispatch) => {
   dispatch({ type: DELETE_TASK_REQUEST });
 
   try {
-    const res = await axios.delete(`http://localhost:5000/task/delete/${id}`, {
-      withCredentials: true,
-    });
+    const token = localStorage.getItem("accessToken");
+
+    const res = await axios.delete(
+      `https://stamurai-backend-cm0v.onrender.com/task/delete/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     dispatch({ type: DELETE_TASK_SUCCESS, payload: id });
     return "deleted";
@@ -192,16 +218,20 @@ export const deleteTask = (id, token) => async (dispatch) => {
   }
 };
 
-// for handeling a task update
+// For handling a task update
 export const updateTask = (id, updatedData) => async (dispatch) => {
   dispatch({ type: FETCH_TASKS_REQUEST }); // optional: reuse for loader
 
   try {
+    const token = localStorage.getItem("accessToken");
+
     const res = await axios.patch(
-      `http://localhost:5000/task/update/${id}`,
+      `https://stamurai-backend-cm0v.onrender.com/task/update/${id}`,
       updatedData,
       {
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
     );
 
@@ -225,14 +255,23 @@ export const setSearchQuery = (query) => ({
 // to assign task
 export const assignTask = (taskData) => async (dispatch) => {
   try {
-    const response = await axios.post("http://localhost:5000/assignTask", taskData,{
-      withCredentials:true
-    });
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.post(
+      "https://stamurai-backend-cm0v.onrender.com/assignTask",
+      taskData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
     if (response.data.task.assignStatus === "requested") {
       console.log("This was a REQUEST (not direct assignment)");
     }
-    dispatch({type:TASK_ASSIGNED,payload:response.data.task._id})
+
+    dispatch({ type: TASK_ASSIGNED, payload: response.data.task._id });
     return response.data;
   } catch (error) {
     console.log("Full error details:", {
@@ -248,9 +287,17 @@ export const assignTask = (taskData) => async (dispatch) => {
 export const getAssignedTasks = () => async (dispatch) => {
   dispatch({ type: GET_ASSIGNED_TASKS_REQUEST });
   try {
-    const response = await axios.get("http://localhost:5000/assignTask/", {
-      withCredentials: true,
-    });
+    const token = localStorage.getItem("accessToken");
+
+    const response = await axios.get(
+      "https://stamurai-backend-cm0v.onrender.com/assignTask/",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
     dispatch({
       type: GET_ASSIGNED_TASKS_SUCCESS,
       payload: response.data,
@@ -285,10 +332,15 @@ export const updateTaskStatus = (task) => ({
 export const respondToTaskRequest = (taskId, response) => async (dispatch) => {
   dispatch({ type: RESPOND_TO_TASK_REQUEST });
   try {
+    const token = localStorage.getItem("accessToken");
     const res = await axios.post(
-      `http://localhost:5000/assignTask/${taskId}/respond`,
+      `https://stamurai-backend-cm0v.onrender.com/assignTask/${taskId}/respond`,
       { response },
-      { withCredentials: true }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     dispatch({ type: DECREMENT_REQUEST_COUNT });
     return res.data;
@@ -301,10 +353,15 @@ export const respondToTaskRequest = (taskId, response) => async (dispatch) => {
 export const editAssignedTask = (taskId, updates) => async (dispatch) => {
   dispatch({ type: EDIT_ASSIGNED_TASK_REQUEST });
   try {
+    const token = localStorage.getItem("accessToken");
     const response = await axios.put(
-      `http://localhost:5000/assignTask/edit/${taskId}`,
+      `https://stamurai-backend-cm0v.onrender.com/assignTask/edit/${taskId}`,
       updates,
-      { withCredentials: true }
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     dispatch({
       type: EDIT_ASSIGNED_TASK_SUCCESS,
@@ -322,9 +379,14 @@ export const editAssignedTask = (taskId, updates) => async (dispatch) => {
 export const deleteAssignedTask = (taskId) => async (dispatch) => {
   dispatch({ type: DELETE_ASSIGNED_TASK_REQUEST });
   try {
+    const token = localStorage.getItem("accessToken");
     const response = await axios.delete(
-      `http://localhost:5000/assignTask/delete/${taskId}`,
-      { withCredentials: true }
+      `https://stamurai-backend-cm0v.onrender.com/assignTask/delete/${taskId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
     );
     dispatch({
       type: DELETE_ASSIGNED_TASK_SUCCESS,
@@ -337,4 +399,3 @@ export const deleteAssignedTask = (taskId) => async (dispatch) => {
     });
   }
 };
-

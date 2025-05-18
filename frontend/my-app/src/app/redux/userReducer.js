@@ -6,7 +6,6 @@ import {
   SIGNUP_SUCCESS,
   SIGNUP_FAILURE,
   LOGOUT,
-  STOP,
 } from "./actionTypes";
 
 const initialState = {
@@ -63,13 +62,8 @@ export const userReducer = (state = initialState, action) => {
         isError: null,
       };
 
-    case STOP:
-      return {
-        ...state,
-        isLoading: false,  // generic stop loading action
-      };
 
     default:
-      return state;
+      return state; 
   }
 };

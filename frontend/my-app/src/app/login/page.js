@@ -62,7 +62,7 @@ export default function LoginPage() {
         }
       }
 
-      // Login logic
+      // Login logic handeling
       if (isLogin) {
         const result = await dispatch(
           loginUser(formData.username, formData.password)
